@@ -223,3 +223,14 @@ If a decision could affect multiple modules, request clarification instead of ma
 Build a production-ready IPO Genius AI platform with clean architecture, reusable components, scalable code, and consistent design.
 
 Always prioritize quality, maintainability, and simplicity.
+
+
+## MCP Rules
+
+If the task is related to UI, UX, Figma, wireframes, mockups, design systems, components, layouts, or visual design:
+
+Always use the connected Google Stitch MCP server.
+
+Do not generate React code until the design is approved.
+
+After approval, convert the approved Stitch design into Next.js components.

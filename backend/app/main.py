@@ -9,6 +9,8 @@ from app.database.session import get_db
 from app.shared.exceptions import setup_exception_handlers
 from app.shared.logging import setup_logging
 from app.modules.auth.routes import router as auth_router
+from app.modules.users.routes import router as user_router
+from fastapi.staticfiles import StaticFiles
 
 # Setup Logging
 setup_logging()
@@ -36,8 +38,13 @@ app.add_middleware(
 # Setup Exception Handlers
 setup_exception_handlers(app)
 
+# Mount Static Files for Avatar Uploads
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Include Routers
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(user_router, prefix="/api/v1")
+
 
 @app.get("/health", status_code=status.HTTP_200_OK)
 @app.get("/api/v1/health", status_code=status.HTTP_200_OK)

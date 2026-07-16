@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from typing import Optional
 import uuid
 from datetime import datetime, timezone
-from app.modules.users.models import User
-from app.modules.users.schemas import UserCreate, UserUpdate
+from app.modules.users.models.user import User
+from app.modules.users.schemas.user import UserCreate, UserUpdate
 from app.shared.security import get_password_hash
 
 class UserRepository:
@@ -19,7 +19,7 @@ class UserRepository:
             full_name=user_in.full_name,
             email=user_in.email,
             password_hash=get_password_hash(user_in.password),
-            avatar=user_in.avatar,
+            avatar_url=user_in.avatar_url,
             role="USER",
             is_active=True,
             created_at=datetime.now(timezone.utc),
@@ -27,15 +27,14 @@ class UserRepository:
         )
         db.add(db_user)
         db.commit()
-
         db.refresh(db_user)
         return db_user
 
     def update(self, db: Session, user: User, user_in: UserUpdate) -> User:
         if user_in.full_name is not None:
             user.full_name = user_in.full_name
-        if user_in.avatar is not None:
-            user.avatar = user_in.avatar
+        if user_in.avatar_url is not None:
+            user.avatar_url = user_in.avatar_url
         if user_in.role is not None:
             user.role = user_in.role
         

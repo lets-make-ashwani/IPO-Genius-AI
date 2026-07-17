@@ -8,6 +8,7 @@ from app.config.settings import settings
 from app.database.base import Base
 from app.modules.users.models import User
 from app.modules.auth.models import RefreshToken
+from app.modules.ipos.models import IPO, IPODetail
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

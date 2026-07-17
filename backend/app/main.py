@@ -10,6 +10,7 @@ from app.shared.exceptions import setup_exception_handlers
 from app.shared.logging import setup_logging
 from app.modules.auth.routes import router as auth_router
 from app.modules.users.routes import router as user_router
+from app.modules.ipos.routes import router as ipo_router
 from fastapi.staticfiles import StaticFiles
 
 # Setup Logging
@@ -44,6 +45,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Include Routers
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
+app.include_router(ipo_router, prefix="/api/v1")
+
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)

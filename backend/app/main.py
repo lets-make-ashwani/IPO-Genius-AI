@@ -11,6 +11,7 @@ from app.shared.logging import setup_logging
 from app.modules.auth.routes import router as auth_router
 from app.modules.users.routes import router as user_router
 from app.modules.ipos.routes import router as ipo_router
+from app.modules.ai.routes import router as ai_router
 from fastapi.staticfiles import StaticFiles
 
 # Setup Logging
@@ -46,6 +47,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(ipo_router, prefix="/api/v1")
+app.include_router(ai_router, prefix="/api/v1")
+
 
 
 

@@ -22,3 +22,5 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     settings = relationship("UserSetting", back_populates="user", uselist=False, cascade="all, delete-orphan")
     activities = relationship("UserActivity", back_populates="user", cascade="all, delete-orphan")
+    watchlist_folders = relationship("WatchlistFolder", back_populates="user", cascade="all, delete-orphan")
+

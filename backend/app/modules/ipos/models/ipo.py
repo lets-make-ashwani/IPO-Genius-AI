@@ -59,4 +59,6 @@ class IPO(Base):
     # Relationships
     details = relationship("IPODetail", back_populates="ipo", uselist=False, cascade="all, delete-orphan")
     ai_analyses = relationship("AIAnalysis", back_populates="ipo", cascade="all, delete-orphan")
+    watchlist_items = relationship("WatchlistItem", back_populates="ipo", cascade="all, delete-orphan")
+
 

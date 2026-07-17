@@ -9,6 +9,10 @@ from app.database.base import Base
 from app.modules.users.models import User
 from app.modules.auth.models import RefreshToken
 from app.modules.ipos.models import IPO, IPODetail
+from app.modules.ai.models.analysis import AIAnalysis
+from app.modules.watchlist.models.watchlist import WatchlistFolder, WatchlistItem
+from app.modules.notifications.models.notification import Notification, NotificationPreference
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

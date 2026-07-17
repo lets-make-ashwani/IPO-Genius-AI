@@ -12,6 +12,11 @@ from app.modules.ipos.models import IPO, IPODetail
 from app.modules.ai.models.analysis import AIAnalysis
 from app.modules.watchlist.models.watchlist import WatchlistFolder, WatchlistItem
 from app.modules.notifications.models.notification import Notification, NotificationPreference
+from app.modules.subscriptions.models.plan import SubscriptionPlan
+from app.modules.subscriptions.models.subscription import UserSubscription
+from app.modules.subscriptions.models.payment import PaymentTransaction
+from app.modules.subscriptions.models.webhook import PaymentWebhookEvent
+
 
 
 # this is the Alembic Config object, which provides

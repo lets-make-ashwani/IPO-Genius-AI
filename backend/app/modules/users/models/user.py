@@ -25,5 +25,8 @@ class User(Base):
     watchlist_folders = relationship("WatchlistFolder", back_populates="user", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     notification_preferences = relationship("NotificationPreference", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    subscriptions = relationship("UserSubscription", back_populates="user", cascade="all, delete-orphan")
+    payments = relationship("PaymentTransaction", back_populates="user", cascade="all, delete-orphan")
+
 
 

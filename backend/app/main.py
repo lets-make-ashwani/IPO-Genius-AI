@@ -15,6 +15,7 @@ from app.modules.ai.routes import router as ai_router
 from app.modules.watchlist.routes import router as watchlist_router
 from app.modules.notifications.routes import router as notifications_router
 from app.modules.admin.routes import router as admin_router
+from app.modules.subscriptions.routes import subscription_router, payment_router
 from fastapi.staticfiles import StaticFiles
 
 # Setup Logging
@@ -54,6 +55,8 @@ app.include_router(ai_router, prefix="/api/v1")
 app.include_router(watchlist_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
+app.include_router(subscription_router, prefix="/api/v1")
+app.include_router(payment_router, prefix="/api/v1")
 
 
 

@@ -1,7 +1,9 @@
 from pydantic import BaseModel, ConfigDict
 import uuid
 import datetime
+from typing import Optional
 from app.modules.ipos.models.ipo import IPOStatus, IPOExchange, IPOType
+
 
 class IPODetailResponse(BaseModel):
     company_overview: str | None = None
@@ -49,3 +51,61 @@ class IPOResponse(BaseModel):
 
 class IPODetailExtendedResponse(IPOResponse):
     details: IPODetailResponse | None = None
+
+class IPODetailCreate(BaseModel):
+    company_overview: Optional[str] = None
+    business_model: Optional[str] = None
+    promoters: Optional[str] = None
+    objectives: Optional[str] = None
+    financial_summary: Optional[str] = None
+
+class IPOCreate(BaseModel):
+    company_name: str
+    slug: Optional[str] = None
+    logo_url: Optional[str] = None
+    sector: Optional[str] = None
+    industry: Optional[str] = None
+    exchange: IPOExchange
+    ipo_type: IPOType
+    price_band: str
+    lot_size: int
+    issue_size: str
+    open_date: datetime.date
+    close_date: datetime.date
+    listing_date: Optional[datetime.date] = None
+    status: IPOStatus
+    gmp: Optional[int] = None
+    gmp_last_updated: Optional[datetime.datetime] = None
+    drhp_url: Optional[str] = None
+    rhp_url: Optional[str] = None
+    prospectus_url: Optional[str] = None
+    source: Optional[str] = None
+    source_url: Optional[str] = None
+    is_verified: bool = True
+    details: Optional[IPODetailCreate] = None
+
+class IPOUpdate(BaseModel):
+    company_name: Optional[str] = None
+    slug: Optional[str] = None
+    logo_url: Optional[str] = None
+    sector: Optional[str] = None
+    industry: Optional[str] = None
+    exchange: Optional[IPOExchange] = None
+    ipo_type: Optional[IPOType] = None
+    price_band: Optional[str] = None
+    lot_size: Optional[int] = None
+    issue_size: Optional[str] = None
+    open_date: Optional[datetime.date] = None
+    close_date: Optional[datetime.date] = None
+    listing_date: Optional[datetime.date] = None
+    status: Optional[IPOStatus] = None
+    gmp: Optional[int] = None
+    gmp_last_updated: Optional[datetime.datetime] = None
+    drhp_url: Optional[str] = None
+    rhp_url: Optional[str] = None
+    prospectus_url: Optional[str] = None
+    source: Optional[str] = None
+    source_url: Optional[str] = None
+    is_verified: Optional[bool] = None
+    details: Optional[IPODetailCreate] = None
+

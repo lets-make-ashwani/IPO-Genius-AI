@@ -40,4 +40,45 @@ class IPOService:
             db, status=ipo_status, ipo_type=ipo_type, search=search, limit=limit, offset=offset
         )
 
+    def create_ipo(self, db: Session, ipo_data) -> IPO:
+        # Date validation
+        if ipo_data.open_date > ipo_data.close_date:
+            raise AppException("Open date must be before or equal to close date", status_code=status.HTTP_400_BAD_REQUEST)
+
+        # Generate unique slug
+        import re
+        slug = ipo_data.slug
+        if not slug:
+            base_slug = ipo_data.company_name.lower()
+            base_slug = re.sub(r'[^a-z0-9\s-]', '', base_slug)
+            base_slug = re.sub(r'[\s-]+', '-', base_slug)
+            base_slug = base_slug.strip('-')
+            
+            slug = base_slug
+            counter = 1
+            while db.query(IPO).filter(IPO.slug == slug).first():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+
+        logger.info(f"Creating new IPO: '{ipo_data.company_name}' with slug: '{slug}'")
+        return ipo_repository.create(db, ipo_data, slug)
+
+    def update_ipo(self, db: Session, ipo_id: uuid.UUID, ipo_data) -> IPO:
+        ipo = self.get_ipo_by_id(db, ipo_id)
+
+        # Date validation
+        new_open = ipo_data.open_date if ipo_data.open_date is not None else ipo.open_date
+        new_close = ipo_data.close_date if ipo_data.close_date is not None else ipo.close_date
+        if new_open > new_close:
+            raise AppException("Open date must be before or equal to close date", status_code=status.HTTP_400_BAD_REQUEST)
+
+        logger.info(f"Updating IPO: {ipo_id}")
+        return ipo_repository.update(db, ipo, ipo_data)
+
+    def delete_ipo(self, db: Session, ipo_id: uuid.UUID) -> None:
+        ipo = self.get_ipo_by_id(db, ipo_id)
+        logger.info(f"Deleting IPO: {ipo_id}")
+        ipo_repository.delete(db, ipo)
+
 ipo_service = IPOService()
+

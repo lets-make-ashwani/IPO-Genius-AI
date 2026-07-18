@@ -23,6 +23,14 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_SECRET: str = ""
     RAZORPAY_WEBHOOK_SECRET: str = ""
 
+    # Pipeline Settings
+    PIPELINE_PROVIDER: str = "MOCK"
+    DOCUMENT_PARSER_PROVIDER: str = "MOCK"
+    DOCUMENT_STORAGE_TYPE: str = "LOCAL"
+    DOCUMENT_STORAGE_PATH: str = "./pipeline_docs"
+    PIPELINE_AI_AUTO_TRIGGER: bool = True
+    PIPELINE_MAX_RETRIES: int = 3
+
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"),
         env_file_encoding="utf-8",

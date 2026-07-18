@@ -1,0 +1,51 @@
+# ============================================================
+# IPO Genius AI – Root-level .gitignore
+# ============================================================
+
+# ── OS Artefacts ────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── IDE / Editor ────────────────────────────────────────────
+.idea/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+*.sublime-workspace
+*.sublime-project
+
+# ── Log Files ───────────────────────────────────────────────
+*.log
+logs/
+
+# ── Backup & Temp Files ─────────────────────────────────────
+*.bak
+*.tmp
+*.swp
+*.swo
+*~
+
+# ── Secrets & Credentials ───────────────────────────────────
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.env
+.env.local
+.env.*.local
+
+# ── n8n Workflow Exports ─────────────────────────────────────
+# Keep workflow JSON files in version control, but exclude local
+# credential exports and execution logs.
+n8n/credentials/
+n8n/database.sqlite
+n8n/*.log
+
+# ── Docker Override Files ───────────────────────────────────
+docker-compose.override.yml
+docker-compose.local.yml

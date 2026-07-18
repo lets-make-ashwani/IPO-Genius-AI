@@ -1,7 +1,99 @@
+# ============================================================
+# IPO Genius AI – Backend Python / FastAPI .gitignore
+# ============================================================
+
+# ── Virtual Environments ────────────────────────────────────
 .venv/
-__pycache__/
-*.pyc
+venv/
+env/
+ENV/
+.env.bak
+
+# ── Environment & Secrets ───────────────────────────────────
 .env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ── Python Bytecode & Build Artifacts ───────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg
+*.egg-info/
+dist/
+build/
+wheels/
+.eggs/
+MANIFEST
+pip-wheel-metadata/
+
+# ── Type Checkers & Linters ─────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pyright/
+
+# ── Test & Coverage Artifacts ───────────────────────────────
 .pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+nosetests.xml
+pytest.ini
+junit*.xml
+
+# ── Alembic Cache ───────────────────────────────────────────
+alembic/versions/__pycache__/
+
+# ── IDE / Editor ────────────────────────────────────────────
+.idea/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+
+# ── OS Artefacts ────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── Log Files ───────────────────────────────────────────────
+*.log
+logs/
+
+# ── Database Files ──────────────────────────────────────────
+*.db
+*.sqlite3
+*.sqlite
+
+# ── Static User-Uploaded Content (keep .gitkeep) ───────────
 static/avatars/*
 !static/avatars/.gitkeep
+static/documents/*
+!static/documents/.gitkeep
+
+# ── Pipeline Local Document Cache ───────────────────────────
+# Stores downloaded IPO PDFs/text. Never commit raw documents.
+pipeline_docs/
+
+# ── Backup & Temp Files ─────────────────────────────────────
+*.bak
+*.tmp
+*.swp
+*.swo
+*~
+
+# ── Docker Override Files ───────────────────────────────────
+docker-compose.override.yml
+docker-compose.local.yml

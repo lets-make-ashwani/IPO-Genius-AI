@@ -16,6 +16,7 @@ from app.modules.subscriptions.models.plan import SubscriptionPlan
 from app.modules.subscriptions.models.subscription import UserSubscription
 from app.modules.subscriptions.models.payment import PaymentTransaction
 from app.modules.subscriptions.models.webhook import PaymentWebhookEvent
+from app.modules.pipeline.models.pipeline import PipelineRun, PipelineRunItem, IPODocument
 
 
 

@@ -50,6 +50,8 @@ class IPO(Base):
     # Scraper & Sync Fields
     source: Mapped[str | None] = mapped_column(String(100), nullable=True)
     source_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    source_identifier: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    source_data_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 

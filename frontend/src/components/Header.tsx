@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, Bell, Sun, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
 
 interface HeaderProps {
   onSearch?: (term: string) => void;
@@ -17,6 +18,7 @@ export default function Header({
 }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
 
   // Create breadcrumbs from pathname
   const paths = pathname.split('/').filter(Boolean);
@@ -71,7 +73,7 @@ export default function Header({
 
         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 rounded-full bg-primary-blue/20 flex items-center justify-center font-bold text-primary-blue text-sm">
-            RK
+            {user?.avatar ?? '?'}
           </div>
           <ChevronDown className="w-4 h-4 text-text-muted" />
         </div>

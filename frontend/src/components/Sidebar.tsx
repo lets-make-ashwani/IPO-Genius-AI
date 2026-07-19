@@ -20,6 +20,7 @@ import {
   FolderOpen
 } from 'lucide-react';
 import { authService } from '../services/auth.service';
+import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
   isAdmin?: boolean;
@@ -42,6 +43,7 @@ interface MenuGroup {
 export default function Sidebar({ isAdmin = false }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout } = useAuth();
 
   const userMenu: MenuGroup[] = [
     {
@@ -91,7 +93,7 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
   const menuGroups = isAdmin ? adminMenu : userMenu;
 
   const handleLogout = async () => {
-    await authService.logout();
+    await logout();
     router.push('/login');
   };
 
@@ -153,11 +155,13 @@ export default function Sidebar({ isAdmin = false }: SidebarProps) {
         <div className="flex items-center justify-between p-3 rounded-lg bg-card-bg/60 border border-border-subtle">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-primary-blue/20 flex items-center justify-center font-bold text-primary-blue">
-              RK
+              {user?.avatar ?? '?'}
             </div>
             <div className="text-left">
-              <h5 className="text-xs font-semibold text-white">Rahul Kumar</h5>
-              <span className="text-[10px] font-medium text-accent-emerald bg-accent-emerald/10 px-1.5 py-0.2 rounded-sm">Pro Plan</span>
+              <h5 className="text-xs font-semibold text-white">{user?.name ?? '...'}</h5>
+              <span className="text-[10px] font-medium text-accent-emerald bg-accent-emerald/10 px-1.5 py-0.2 rounded-sm">
+                {user?.plan ?? 'Free'} Plan
+              </span>
             </div>
           </div>
           <button

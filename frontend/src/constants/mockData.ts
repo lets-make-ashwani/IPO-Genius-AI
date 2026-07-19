@@ -6,6 +6,7 @@ export const mockUsers: User[] = [
     name: 'Rahul Kumar',
     email: 'rahul@example.com',
     avatar: 'RK',
+    role: 'USER',
     plan: 'Pro',
     status: 'Active',
     joinedDate: '12 Jan 2024'
@@ -15,6 +16,7 @@ export const mockUsers: User[] = [
     name: 'Ashwani Vishwakarma',
     email: 'ashwani@example.com',
     avatar: 'AV',
+    role: 'ADMIN',
     plan: 'Pro',
     status: 'Active',
     joinedDate: '28 Feb 2024'
@@ -24,6 +26,7 @@ export const mockUsers: User[] = [
     name: 'Pooja Sharma',
     email: 'pooja@example.com',
     avatar: 'PS',
+    role: 'USER',
     plan: 'Free',
     status: 'Active',
     joinedDate: '15 Mar 2024'
@@ -33,6 +36,7 @@ export const mockUsers: User[] = [
     name: 'Vikram Singh',
     email: 'vikram@example.com',
     avatar: 'VS',
+    role: 'USER',
     plan: 'Enterprise',
     status: 'Active',
     joinedDate: '01 Apr 2024'
@@ -42,6 +46,7 @@ export const mockUsers: User[] = [
     name: 'Amit Patel',
     email: 'amit@example.com',
     avatar: 'AP',
+    role: 'USER',
     plan: 'Free',
     status: 'Blocked',
     joinedDate: '10 May 2024'

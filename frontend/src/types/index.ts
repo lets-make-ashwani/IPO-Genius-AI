@@ -3,6 +3,9 @@ export interface User {
   name: string;
   email: string;
   avatar: string;
+  /** RBAC role from backend — separate from subscription plan */
+  role: 'USER' | 'PREMIUM' | 'ADMIN';
+  /** Billing subscription tier — wired in a future phase */
   plan: 'Free' | 'Pro' | 'Enterprise';
   status: 'Active' | 'Blocked';
   joinedDate: string;

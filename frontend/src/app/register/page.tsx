@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, Mail, Lock, User, Star, ShieldCheck, AlertCircle } from 'lucide-react';
-import { authService } from '../../services/auth.service';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Register() {
   const router = useRouter();
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +42,7 @@ export default function Register() {
     setError(null);
     
     try {
-      await authService.register(name, email);
+      await register(name, email, password);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Something went wrong.');

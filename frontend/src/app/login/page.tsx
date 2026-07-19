@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, Mail, Lock, Eye, EyeOff, Star, AlertCircle } from 'lucide-react';
-import { authService } from '../../services/auth.service';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -22,8 +23,9 @@ export default function Login() {
     setError(null);
     
     try {
-      const user = await authService.login(email, password);
-      if (email.toLowerCase() === 'admin@ipogenius.ai') {
+      const user = await login(email, password);
+      // Route based on backend role — never infer from email address
+      if (user.role === 'ADMIN') {
         router.push('/admin');
       } else {
         router.push('/dashboard');

@@ -1,67 +1,98 @@
-import { User } from '../types';
-import { mockUsers } from '../constants/mockData';
+/**
+ * auth.service.ts — Real authentication service
+ *
+ * Replaces the previous mock implementation.
+ * All methods call the live FastAPI backend via apiClient.
+ * Token persistence is handled by TokenManager.
+ * Type mapping is handled by toFrontendUser().
+ *
+ * This module is a pure API call layer — it holds no state.
+ * Auth state (user object, loading) lives in AuthContext.
+ */
 
-let currentUser: User | null = mockUsers[0]; // Prefill with Rahul Kumar
+import { apiClient } from '../api/client';
+import { TokenManager } from '../lib/token.manager';
+import { toFrontendUser } from '../lib/auth.adapter';
+import { User } from '../types';
+import { BackendApiResponse, BackendTokenData, BackendUser } from '../types/api';
 
 export const authService = {
-  getCurrentUser: async (): Promise<User | null> => {
-    return currentUser;
+  /**
+   * Sign in with email and password.
+   * Saves access + refresh tokens on success.
+   * Returns the adapted frontend User.
+   */
+  async login(email: string, password: string): Promise<User> {
+    const response = await apiClient.post<BackendApiResponse<BackendTokenData>>(
+      '/auth/login',
+      { email, password },
+      { skipAuth: true },
+    );
+
+    const { access_token, refresh_token, user } = response.data!;
+    TokenManager.saveTokens(access_token, refresh_token);
+    return toFrontendUser(user);
   },
 
-  login: async (email: string, password: string): Promise<User> => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    
-    // Simple mock check
-    if (password === 'error') {
-      throw new Error('Incorrect password. Please try again.');
+  /**
+   * Create a new account then auto-login.
+   * The backend does not return tokens on register, so we call login after.
+   */
+  async register(fullName: string, email: string, password: string): Promise<User> {
+    await apiClient.post<BackendApiResponse>(
+      '/auth/register',
+      { full_name: fullName, email, password },
+      { skipAuth: true },
+    );
+    // Auto-login so the user lands in the app immediately
+    return this.login(email, password);
+  },
+
+  /**
+   * Fetch the current user from GET /users/me.
+   * Returns null if no token exists or the request fails.
+   * Used by AuthContext on startup to restore the session.
+   */
+  async getCurrentUser(): Promise<User | null> {
+    if (!TokenManager.isLoggedIn()) return null;
+
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendUser>>('/users/me');
+      return toFrontendUser(response.data!);
+    } catch {
+      // Token may be expired; the ApiClient will have already attempted a refresh.
+      // If we reach here, the session is truly gone.
+      return null;
     }
-    
-    const user = mockUsers.find((u) => u.email === email) || {
-      id: 'mock-user',
-      name: email.split('@')[0],
-      email: email,
-      avatar: email.substring(0, 2).toUpperCase(),
-      plan: 'Free' as const,
-      status: 'Active' as const,
-      joinedDate: 'Today'
-    };
-    
-    currentUser = user;
-    return user;
   },
 
-  register: async (name: string, email: string): Promise<User> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const user: User = {
-      id: 'u-' + Math.random().toString(36).substr(2, 9),
-      name,
-      email,
-      avatar: name.substring(0, 2).toUpperCase(),
-      plan: 'Free',
-      status: 'Active',
-      joinedDate: 'Today'
-    };
-    currentUser = user;
-    return user;
+  /**
+   * Sign out the current user.
+   * Calls POST /auth/logout to revoke the refresh token server-side.
+   * Always clears local tokens even if the network request fails.
+   */
+  async logout(): Promise<void> {
+    const refreshToken = TokenManager.getRefreshToken();
+    try {
+      if (refreshToken) {
+        await apiClient.post('/auth/logout', { refresh_token: refreshToken });
+      }
+    } finally {
+      // Always clear tokens locally — even if the server call fails
+      TokenManager.clearTokens();
+    }
   },
 
-  logout: async (): Promise<void> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    currentUser = null;
-  },
-
-  sendPasswordReset: async (email: string): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 600));
+  /**
+   * Send a password reset link to the provided email.
+   * The backend currently mocks this — it always returns success.
+   */
+  async sendPasswordReset(email: string): Promise<boolean> {
+    await apiClient.post(
+      '/auth/forgot-password',
+      { email },
+      { skipAuth: true },
+    );
     return true;
   },
-
-  resetPassword: async (): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    return true;
-  },
-
-  verifyEmail: async (otp: string): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return otp === '123456' || otp.length === 6;
-  }
 };

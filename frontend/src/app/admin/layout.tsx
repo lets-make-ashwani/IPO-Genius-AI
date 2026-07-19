@@ -2,6 +2,7 @@
 
 import Sidebar from '../../components/Sidebar';
 import Header from '../../components/Header';
+import AuthGuard from '../../components/AuthGuard';
 import { useState } from 'react';
 
 export default function AdminLayout({
@@ -12,22 +13,24 @@ export default function AdminLayout({
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
-    <div className="min-h-screen bg-dark-bg text-text-primary flex">
-      {/* Admin Sidebar */}
-      <Sidebar isAdmin={true} />
+    <AuthGuard requireAdmin>
+      <div className="min-h-screen bg-dark-bg text-text-primary flex">
+        {/* Admin Sidebar */}
+        <Sidebar isAdmin={true} />
 
-      {/* Main Panel Content */}
-      <div className="flex-1 flex flex-col pl-70 min-h-screen">
-        {/* Sticky Admin Header */}
-        <Header 
-          onSearch={(term) => setSearchTerm(term)} 
-          searchPlaceholder="Search admin database..."
-        />
-        
-        <main className="flex-1 p-8">
-          {children}
-        </main>
+        {/* Main Panel Content */}
+        <div className="flex-1 flex flex-col pl-70 min-h-screen">
+          {/* Sticky Admin Header */}
+          <Header 
+            onSearch={(term) => setSearchTerm(term)} 
+            searchPlaceholder="Search admin database..."
+          />
+          
+          <main className="flex-1 p-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

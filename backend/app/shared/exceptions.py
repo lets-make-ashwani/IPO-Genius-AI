@@ -60,11 +60,22 @@ def setup_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def general_exception_handler(request: Request, exc: Exception):
         logger.error(f"Unhandled exception: {str(exc)} on path {request.url.path}", exc_info=True)
+        
+        from app.config.settings import settings
+        import traceback
+        
+        content = {
+            "success": False,
+            "message": "Internal server error occurred",
+            "errors": []
+        }
+        
+        if settings.ENVIRONMENT.lower() != "production":
+            content["message"] = f"Debug: {exc.__class__.__name__}: {str(exc)}"
+            content["errors"] = traceback.format_exception(type(exc), exc, exc.__traceback__)
+            
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "success": False,
-                "message": "Internal server error occurred",
-                "errors": []
-            }
+            content=content
         )
+

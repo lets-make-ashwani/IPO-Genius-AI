@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.modules.auth.schemas import (
@@ -83,18 +83,28 @@ def logout(request: RefreshTokenRequest, db: Session = Depends(get_db), current_
     )
 
 @router.post("/auth/forgot-password", response_model=APIResponse)
-def forgot_password(request: ForgotPasswordRequest):
-    # Mocking for Phase 1
-    logger.info(f"Forgot password link requested for {request.email}")
+def forgot_password(request: Request, body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    from app.shared.rate_limiter import forgot_password_limiter
+    # Rate limit by client IP address
+    ip_key = request.client.host if request.client else "unknown"
+    forgot_password_limiter.check_rate_limit(ip_key)
+
+    logger.info("Forgot password link requested")
+    auth_service.request_password_reset(db, body.email)
     return APIResponse(
         success=True,
-        message="Password reset link sent to your email"
+        message="If the email exists, a password reset link has been sent."
     )
 
 @router.post("/auth/reset-password", response_model=APIResponse)
-def reset_password(request: ResetPasswordRequest):
-    # Mocking for Phase 1
+def reset_password(request: Request, body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    from app.shared.rate_limiter import reset_password_limiter
+    # Rate limit by client IP address
+    ip_key = request.client.host if request.client else "unknown"
+    reset_password_limiter.check_rate_limit(ip_key)
+
     logger.info("Reset password request received")
+    auth_service.reset_password(db, body.token, body.new_password)
     return APIResponse(
         success=True,
         message="Password has been reset successfully"
@@ -108,3 +118,4 @@ def get_profile(current_user: User = Depends(get_current_user)):
         message="Profile fetched",
         data=user_resp
     )
+

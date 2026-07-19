@@ -17,6 +17,13 @@ class Settings(BaseSettings):
     # CORS Settings
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # SMTP / Email Settings
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "noreply@ipogenius.ai"
+
     # Payment Settings
     PAYMENT_PROVIDER: str = "MOCK"
     RAZORPAY_KEY_ID: str = ""

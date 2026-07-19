@@ -49,3 +49,24 @@ def decode_token(token: str) -> Optional[dict]:
     except InvalidTokenError as e:
         logger.warning(f"JWT Token validation error: {e}")
         return None
+
+def create_password_reset_token(email: str) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode = {
+        "sub": email,
+        "type": "reset",
+        "exp": int(expire.timestamp())
+    }
+    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm="HS256")
+
+def decode_password_reset_token(token: str) -> Optional[str]:
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        if payload.get("type") != "reset":
+            logger.warning("Token type is not reset")
+            return None
+        return payload.get("sub")
+    except InvalidTokenError as e:
+        logger.warning(f"Reset token validation error: {e}")
+        return None
+

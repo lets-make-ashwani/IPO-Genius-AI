@@ -13,6 +13,8 @@ class UserActivityType(str, enum.Enum):
     PASSWORD_CHANGE = "PASSWORD_CHANGE"
     PROFILE_UPDATE = "PROFILE_UPDATE"
     AVATAR_CHANGE = "AVATAR_CHANGE"
+    PASSWORD_RESET_REQUESTED = "PASSWORD_RESET_REQUESTED"
+    PASSWORD_RESET_COMPLETED = "PASSWORD_RESET_COMPLETED"
 
 class UserActivity(Base):
     __tablename__ = "user_activities"

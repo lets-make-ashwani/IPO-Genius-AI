@@ -89,31 +89,6 @@ def health_check(db: Session = Depends(get_db)):
     }
 
 
-@app.post("/api/v1/debug/db-init")
-def db_init():
-    if settings.ENVIRONMENT.lower() == "production":
-        return {"error": "Not allowed in production"}
-        
-    from app.database.base import Base
-    from app.database.session import engine
-    
-    # Import all models to ensure they are registered on Base
-    from app.modules.users.models.user import User
-    from app.modules.auth.models import RefreshToken
-    from app.modules.ipos.models.ipo import IPO
-    from app.modules.ipos.models.detail import IPODetail
-    from app.modules.ai.models.analysis import AIAnalysis
-    from app.modules.watchlist.models.watchlist import WatchlistItem, WatchlistFolder
-    from app.modules.notifications.models.notification import Notification, NotificationPreference
-    from app.modules.subscriptions.models.plan import SubscriptionPlan
-    from app.modules.subscriptions.models.subscription import UserSubscription
-    from app.modules.subscriptions.models.payment import PaymentTransaction
-    from app.modules.subscriptions.models.webhook import PaymentWebhookEvent
-    from app.modules.pipeline.models.pipeline import PipelineRun, PipelineRunItem, IPODocument
-    
-    try:
-        Base.metadata.create_all(bind=engine)
-        return {"success": True, "message": "Database tables initialized successfully"}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
+
+
 

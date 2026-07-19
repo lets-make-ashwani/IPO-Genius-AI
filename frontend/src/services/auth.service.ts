@@ -95,4 +95,17 @@ export const authService = {
     );
     return true;
   },
+
+  /**
+   * Submit the new password and the reset token to the backend.
+   */
+  async resetPassword(token: string, newPassword: string): Promise<boolean> {
+    await apiClient.post(
+      '/auth/reset-password',
+      { token, new_password: newPassword },
+      { skipAuth: true },
+    );
+    return true;
+  },
 };
+

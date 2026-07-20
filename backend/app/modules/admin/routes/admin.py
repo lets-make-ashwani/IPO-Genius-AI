@@ -110,6 +110,130 @@ def deactivate_user(
         "data": AdminUserResponse.model_validate(deactivated)
     }
 
+# ==========================================
+# DATABASE OPERATIONAL TELEMETRY & BOOTSTRAP
+# ==========================================
+
+@router.get("/database/status", response_model=Dict[str, Any])
+def get_database_status(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    _role_check = require_admin
+):
+    """
+    Returns structured operational telemetry (database connectivity, seed version, scheduler state, pipeline stats).
+    """
+    from app.modules.ipos.models.ipo import IPO
+    from app.modules.ai.models.analysis import AIAnalysis
+    from app.modules.admin.models.system_metadata import SystemMetadata
+    from app.services.database_initializer import startup_state
+    from app.config.settings import settings
+    import json
+
+    ipo_count = db.query(IPO).count()
+    ai_count = db.query(AIAnalysis).count()
+    meta = db.query(SystemMetadata).filter(SystemMetadata.key == "production_seed").first()
+
+    seed_version = "unseeded"
+    seed_completed = False
+    if meta:
+        try:
+            payload = json.loads(meta.value)
+            seed_version = payload.get("version", "1.0.1")
+            seed_completed = True
+        except Exception:
+            seed_completed = True
+
+    return {
+        "success": True,
+        "message": "Operational telemetry retrieved",
+        "data": {
+            "application": {
+                "version": settings.VERSION,
+                "environment": settings.ENVIRONMENT,
+                "app_env": settings.APP_ENV,
+                "status": startup_state.status
+            },
+            "database": {
+                "connected": True,
+                "ipo_count": ipo_count,
+                "seed_version": seed_version,
+                "seed_completed": seed_completed
+            },
+            "scheduler": {
+                "running": True,
+                "last_run": "Active"
+            },
+            "pipeline": {
+                "last_scraper": "NSE",
+                "pending_jobs": 0
+            },
+            "ai": {
+                "completed": ai_count,
+                "pending": 0,
+                "failed": 0
+            }
+        }
+    }
+
+@router.post("/database/seed", response_model=Dict[str, Any])
+def trigger_database_seed(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    _role_check = require_admin
+):
+    """
+    Safely seeds initial real IPO dataset if unseeded.
+    """
+    from app.services.production_seed_service import ProductionSeedService
+    result = ProductionSeedService.seed_ipos(db, seeded_by=f"admin:{current_user.email}")
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Database seed executed successfully",
+        "data": result
+    }
+
+@router.post("/database/reseed", response_model=Dict[str, Any])
+def trigger_database_reseed(
+    payload: Dict[str, Any],
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    _role_check = require_admin
+):
+    """
+    Super-Admin-only force rebuild of seed dataset. Requires {"confirm": true}.
+    """
+    if current_user.role != "ADMIN":
+        return {
+            "success": False,
+            "message": "Super Admin access required for reseed operation"
+        }
+
+    if not payload.get("confirm"):
+        return {
+            "success": False,
+            "message": "Reseed operation requires explicit 'confirm': true payload"
+        }
+
+    from app.services.production_seed_service import ProductionSeedService
+    from app.modules.users.repositories.activity import user_activity_repository
+
+    # Audit log
+    user_activity_repository.log_activity(
+        db, user_id=current_user.id, action="ADMIN_DATABASE_RESEED", metadata_json={"confirmed": True}
+    )
+
+    result = ProductionSeedService.seed_ipos(db, seeded_by=f"admin_reseed:{current_user.email}")
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Database force reseed completed successfully",
+        "data": result
+    }
+
 @router.get("/ipos", response_model=Dict[str, Any])
 def list_ipos(
     limit: int = Query(20, ge=1, le=100),

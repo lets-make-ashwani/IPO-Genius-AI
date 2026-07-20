@@ -3,11 +3,23 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
+    VERSION: str = "1.0.1"
     ENVIRONMENT: str = "development"
+    APP_ENV: str = "development"
     PORT: int = 8000
+    
+    # Super Admin Bootstrap Settings
+    SUPER_ADMIN_EMAIL: str = "admin@ipogenius.ai"
+    SUPER_ADMIN_PASSWORD: str = "Admin123456!"
+    SUPER_ADMIN_NAME: str = "System Administrator"
+
+    # Initial Seeding Settings
+    INITIAL_IPO_SEED_ENABLED: bool = True
+    INITIAL_IPO_SEED_COUNT: int = 10
     
     # Database Settings
     DATABASE_URL: str
+
     
     # Security Settings
     JWT_SECRET: str

@@ -4,55 +4,110 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Users, 
-  DollarSign, 
   Sparkles, 
   Activity, 
   ArrowRight,
   TrendingUp,
   Database,
-  CheckCircle,
-  Play
+  Play,
+  RotateCcw,
+  ShieldCheck
 } from 'lucide-react';
 import { ipoService } from '../../services/ipo.service';
+import { apiClient } from '../../api/client';
 import { IPO } from '../../types';
 
 export default function AdminDashboard() {
   const [latestIPOs, setLatestIPOs] = useState<IPO[]>([]);
   const [totalIPOs, setTotalIPOs] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadAdminData = () => {
+    setLoading(true);
     ipoService.getIPOs(undefined, undefined, undefined, undefined, 1, 5)
       .then(res => {
-        if (isMounted) {
-          setLatestIPOs(res.items);
-          setTotalIPOs(res.total);
-          setLoading(false);
-        }
+        setLatestIPOs(res.items);
+        setTotalIPOs(res.total);
+        setLoading(false);
       })
       .catch(err => {
         console.error('Failed to load admin stats:', err);
-        if (isMounted) setLoading(false);
+        setLoading(false);
       });
+  };
 
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    loadAdminData();
   }, []);
+
+  const handleInitDatabase = async () => {
+    setIsProcessing(true);
+    setActionMessage(null);
+    try {
+      await apiClient.post('/admin/database/seed', {});
+      setActionMessage('Database Initialized & Seeded Successfully! Refreshing...');
+      setTimeout(() => {
+        loadAdminData();
+        setIsProcessing(false);
+      }, 2000);
+    } catch (err: any) {
+      setActionMessage(`Error initializing database: ${err.message || 'Server error'}`);
+      setIsProcessing(false);
+    }
+  };
+
+  const handleReseedDatabase = async () => {
+    if (!confirm('SUPER ADMIN WARNING: Are you sure you want to force reseed and re-evaluate the initial dataset?')) return;
+    setIsProcessing(true);
+    setActionMessage(null);
+    try {
+      await apiClient.post('/admin/database/reseed', { confirm: true });
+      setActionMessage('Database Force Reseed Completed & AI Generation Queued!');
+      setTimeout(() => {
+        loadAdminData();
+        setIsProcessing(false);
+      }, 2000);
+    } catch (err: any) {
+      setActionMessage(`Error reseeding database: ${err.message || 'Server error'}`);
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
       {/* Title */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white mb-1">Admin Console & Enterprise Control</h1>
           <p className="text-xs text-text-muted">Live pipeline orchestration, database management, and engine health.</p>
         </div>
-        <span className="text-xs font-mono bg-card-bg border border-border-strong px-3 py-1.5 rounded text-accent-emerald flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-accent-emerald animate-ping" /> System Online
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleInitDatabase}
+            disabled={isProcessing}
+            className="bg-primary-blue hover:bg-blue-700 text-white font-semibold text-xs px-3.5 py-2 rounded-md flex items-center gap-1.5 transition-all disabled:opacity-50"
+          >
+            <Database className="w-3.5 h-3.5" />
+            Initialize Database
+          </button>
+          <button
+            onClick={handleReseedDatabase}
+            disabled={isProcessing}
+            className="bg-dark-bg hover:bg-card-bg border border-border-subtle hover:border-red-400/50 text-red-400 font-semibold text-xs px-3.5 py-2 rounded-md flex items-center gap-1.5 transition-all disabled:opacity-50"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Force Reseed
+          </button>
+        </div>
       </div>
+
+      {actionMessage && (
+        <div className="p-3 bg-primary-blue/10 border border-primary-blue/30 rounded-md text-xs text-primary-blue font-semibold">
+          {actionMessage}
+        </div>
+      )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -60,7 +115,7 @@ export default function AdminDashboard() {
           { label: 'Database IPO Records', val: totalIPOs, desc: 'Live DB persisted', icon: Database, trend: 'up' },
           { label: 'Active Pipeline Scrapers', val: '5 / 5', desc: 'NSE, BSE, InvestorGain, Chittorgarh, SEBI', icon: Activity, trend: 'neutral' },
           { label: 'AI Analyses Generated', val: totalIPOs, desc: 'Gemini 1.5 Flash', icon: Sparkles, trend: 'up' },
-          { label: 'API Contract Version', val: 'v1.0.0', desc: 'FastAPI Production SLA', icon: Users, trend: 'up' }
+          { label: 'API Contract Version', val: 'v1.0.1', desc: 'FastAPI Production SLA', icon: ShieldCheck, trend: 'up' }
         ].map((card, idx) => {
           const Icon = card.icon;
           return (

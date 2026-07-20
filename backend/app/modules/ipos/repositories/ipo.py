@@ -27,20 +27,34 @@ class IPORepository:
         db: Session,
         status: Optional[IPOStatus] = None,
         ipo_type: Optional[IPOType] = None,
+        exchange: Optional[str] = None,
+        sector: Optional[str] = None,
+        industry: Optional[str] = None,
         search: Optional[str] = None,
+        sort_by: Optional[str] = "open_date",
+        sort_order: Optional[str] = "desc",
         limit: int = 20,
         offset: int = 0
     ) -> Tuple[List[IPO], int]:
         query = db.query(IPO).options(joinedload(IPO.details))
 
         if status is not None:
-            query = query.filter(IPO.status == status.value)
+            query = query.filter(IPO.status == (status.value if hasattr(status, 'value') else status))
         
         if ipo_type is not None:
-            query = query.filter(IPO.ipo_type == ipo_type.value)
+            query = query.filter(IPO.ipo_type == (ipo_type.value if hasattr(ipo_type, 'value') else ipo_type))
+
+        if exchange is not None and exchange.strip() != "":
+            query = query.filter(IPO.exchange == exchange.strip().upper())
+
+        if sector is not None and sector.strip() != "":
+            query = query.filter(IPO.sector.ilike(f"%{sector.strip()}%"))
+
+        if industry is not None and industry.strip() != "":
+            query = query.filter(IPO.industry.ilike(f"%{industry.strip()}%"))
 
         if search is not None and search.strip() != "":
-            search_pattern = f"%{search}%"
+            search_pattern = f"%{search.strip()}%"
             query = query.filter(
                 or_(
                     IPO.company_name.ilike(search_pattern),
@@ -50,14 +64,21 @@ class IPORepository:
             )
 
         total = query.count()
+
+        # Dynamic Sorting
+        from sqlalchemy import asc, desc
+        sort_column = getattr(IPO, sort_by, IPO.open_date) if sort_by in ["open_date", "close_date", "gmp", "company_name"] else IPO.open_date
+        order_func = asc if (sort_order and sort_order.lower() == "asc") else desc
+
         results = (
-            query.order_by(desc(IPO.open_date))
+            query.order_by(order_func(sort_column))
             .offset(offset)
             .limit(limit)
             .all()
         )
 
         return results, total
+
 
     def create(self, db: Session, ipo_data, slug: str) -> IPO:
         # Validate unique company name

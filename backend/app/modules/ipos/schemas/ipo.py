@@ -52,6 +52,55 @@ class IPOResponse(BaseModel):
 class IPODetailExtendedResponse(IPOResponse):
     details: IPODetailResponse | None = None
 
+class IPOAnalysisResponse(BaseModel):
+    ipo_id: uuid.UUID
+    overall_score: int
+    financial_score: int | None = None
+    management_score: int | None = None
+    valuation_score: int | None = None
+    risk_score: int | None = None
+    recommendation: str
+    summary: str | None = None
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    risks: list[str] = []
+    model_provider: str | None = None
+    model_version: str | None = None
+
+class IPOFinancialsResponse(BaseModel):
+    ipo_id: uuid.UUID
+    financial_summary: str | None = None
+    revenue_growth: str | None = "N/A"
+    ebitda_margin: str | None = "N/A"
+    pat_margin: str | None = "N/A"
+
+class IPOSubscriptionResponse(BaseModel):
+    ipo_id: uuid.UUID
+    qib_subscription: float = 0.0
+    nii_subscription: float = 0.0
+    retail_subscription: float = 0.0
+    employee_subscription: float = 0.0
+    total_subscription: float = 0.0
+    last_updated_at: datetime.datetime | None = None
+
+class IPODocumentsResponse(BaseModel):
+    ipo_id: uuid.UUID
+    drhp_url: str | None = None
+    rhp_url: str | None = None
+    prospectus_url: str | None = None
+
+class IPONewsItem(BaseModel):
+    title: str
+    source: str
+    url: str
+    published_at: str
+    sentiment: str = "NEUTRAL"
+
+class IPONewsResponse(BaseModel):
+    ipo_id: uuid.UUID
+    articles: list[IPONewsItem] = []
+
+
 class IPODetailCreate(BaseModel):
     company_overview: Optional[str] = None
     business_model: Optional[str] = None

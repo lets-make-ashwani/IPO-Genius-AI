@@ -56,6 +56,16 @@ class PipelineService:
         except ValueError:
             return None
 
+    def _make_json_serializable(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        serializable = {}
+        for k, v in data.items():
+            if isinstance(v, (date, datetime)):
+                serializable[k] = v.strftime("%Y-%m-%d")
+            else:
+                serializable[k] = v
+        return serializable
+
+
 
     def execute_pipeline_run(
         self,
@@ -284,9 +294,10 @@ class PipelineService:
         # Stage: NORMALIZATION (Dedicated layer)
         if item.current_stage == PipelineItemStage.NORMALIZATION:
             normalized_record = self.normalizer.normalize(record)
-            item.normalized_data = normalized_record
+            item.normalized_data = self._make_json_serializable(normalized_record)
             item.current_stage = PipelineItemStage.VALIDATION
             db.commit()
+
 
         # Stage: VALIDATION
         if item.current_stage == PipelineItemStage.VALIDATION:

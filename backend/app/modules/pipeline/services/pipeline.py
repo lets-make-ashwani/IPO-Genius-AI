@@ -2,7 +2,8 @@ import uuid
 import hashlib
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
+
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 
@@ -41,6 +42,20 @@ class PipelineService:
     def __init__(self):
         self.normalizer = Normalizer()
         self.validator = IPODataValidator()
+
+    def _parse_date_obj(self, val: Any) -> Optional[date]:
+        from datetime import date
+        if not val:
+            return None
+        if isinstance(val, date):
+            return val
+        if isinstance(val, datetime):
+            return val.date()
+        try:
+            return datetime.strptime(str(val).strip(), "%Y-%m-%d").date()
+        except ValueError:
+            return None
+
 
     def execute_pipeline_run(
         self,
@@ -134,10 +149,20 @@ class PipelineService:
         if not resume:
             try:
                 raw_records = provider.discover_ipos()
+                import inspect
+                import asyncio
+                import concurrent.futures
+
+                if inspect.iscoroutine(raw_records):
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(asyncio.run, raw_records)
+                        raw_records = future.result()
                 run.total_discovered = len(raw_records)
                 db.commit()
             except Exception as e:
                 raise Exception(f"Failed to discover IPOs from provider {run.source_provider}: {str(e)}")
+
+
 
             # Create items in DB
             items = []
@@ -298,9 +323,9 @@ class PipelineService:
                     price_band=norm_rec["price_band"],
                     lot_size=norm_rec["lot_size"],
                     issue_size=norm_rec["issue_size"],
-                    open_date=norm_rec["open_date"],
-                    close_date=norm_rec["close_date"],
-                    listing_date=norm_rec["listing_date"],
+                    open_date=self._parse_date_obj(norm_rec.get("open_date")),
+                    close_date=self._parse_date_obj(norm_rec.get("close_date")),
+                    listing_date=self._parse_date_obj(norm_rec.get("listing_date")),
                     status=norm_rec["status"],
                     gmp=norm_rec["gmp"],
                     drhp_url=norm_rec["drhp_url"],
@@ -313,6 +338,7 @@ class PipelineService:
                     is_verified=True,
                     last_synced_at=datetime.now(timezone.utc)
                 )
+
                 
                 # IPO Details
                 details = IPODetail(

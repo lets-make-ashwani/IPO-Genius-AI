@@ -34,11 +34,12 @@ class IPODataValidator:
         open_date = record.get("open_date")
         close_date = record.get("close_date")
         if open_date and close_date:
-            if isinstance(open_date, date) and isinstance(close_date, date):
-                if open_date > close_date:
+            if isinstance(open_date, (date, str)) and isinstance(close_date, (date, str)):
+                if str(open_date) > str(close_date):
                     errors.append("open_date must be before or equal to close_date")
             else:
-                errors.append("open_date and close_date must be date objects")
+                errors.append("open_date and close_date must be date objects or valid date strings")
+
 
         # 3. Enum validations
         status = record.get("status")

@@ -72,22 +72,21 @@ class Normalizer:
         s = str(val).strip()
         return s if s else None
 
-    def _normalize_date(self, date_val: Any) -> date | None:
+    def _normalize_date(self, date_val: Any) -> str | None:
         if not date_val:
             return None
-        if isinstance(date_val, date):
-            return date_val
-        if isinstance(date_val, datetime):
-            return date_val.date()
+        if isinstance(date_val, (date, datetime)):
+            return date_val.strftime("%Y-%m-%d")
         
         # Try parsing string formats
         s = str(date_val).strip()
         for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%d-%m-%Y", "%d/%m/%Y", "%b %d, %Y", "%d %b %Y"):
             try:
-                return datetime.strptime(s, fmt).date()
+                return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
             except ValueError:
                 continue
         return None
+
 
     def _normalize_status(self, val: Any) -> str:
         if not val:

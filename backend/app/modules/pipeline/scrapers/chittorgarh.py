@@ -11,7 +11,7 @@ class ChittorgarhScraper(BaseScraper):
 
     async def discover_ipos(self) -> List[IPORawRecord]:
         logger.info("[Chittorgarh] Fetching category subscription data")
-        url = "https://www.chittorgarh.com/ipo/ipo_subscription.asp"
+        url = "https://www.chittorgarh.com/ipo/ipo_dashboard.asp"
         res = await self.make_http_request(url, retries=2)
 
         records: List[IPORawRecord] = []

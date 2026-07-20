@@ -5,6 +5,17 @@ from sqlalchemy import String, DateTime, Integer, Float, ForeignKey, Text, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
+from app.modules.users.models.user import User
+from app.modules.auth.models import RefreshToken
+from app.modules.ipos.models.ipo import IPO
+from app.modules.watchlist.models.watchlist import WatchlistFolder
+from app.modules.notifications.models.notification import Notification, NotificationPreference
+from app.modules.subscriptions.models import UserSubscription, SubscriptionPlan
+
+
+
+
+
 
 class PipelineRunStatus(str, enum.Enum):
     QUEUED = "QUEUED"

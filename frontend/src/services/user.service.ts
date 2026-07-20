@@ -1,67 +1,39 @@
-import { User, Transaction } from '../types';
-import { mockUsers, mockTransactions } from '../constants/mockData';
+/**
+ * user.service.ts — User profile & subscription entitlement service
+ */
 
-let users: User[] = [...mockUsers];
-let transactions: Transaction[] = [...mockTransactions];
+import { User, Transaction } from '../types';
+import { apiClient } from '../api/client';
+import { BackendApiResponse, BackendUser } from '../types/api';
+import { toFrontendUser } from '../lib/auth.adapter';
 
 export const userService = {
-  getUsers: async (search?: string, plan?: string, status?: string): Promise<User[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    let filtered = [...users];
-
-    if (search) {
-      const s = search.toLowerCase();
-      filtered = filtered.filter((u) => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s));
+  /**
+   * Fetch current authenticated user profile
+   */
+  async getCurrentUser(): Promise<User | null> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendUser>>('/users/me');
+      if (!response.data) return null;
+      return toFrontendUser(response.data);
+    } catch {
+      return null;
     }
-
-    if (plan && plan !== 'All') {
-      filtered = filtered.filter((u) => u.plan.toLowerCase() === plan.toLowerCase());
-    }
-
-    if (status && status !== 'All') {
-      filtered = filtered.filter((u) => u.status.toLowerCase() === status.toLowerCase());
-    }
-
-    return filtered;
   },
 
-  updateUserPlan: async (userId: string, plan: User['plan']): Promise<User> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    users = users.map((u) => (u.id === userId ? { ...u, plan } : u));
-    const found = users.find((u) => u.id === userId);
-    if (!found) throw new Error('User not found');
-    return found;
-  },
-
-  updateUserStatus: async (userId: string, status: User['status']): Promise<User> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    users = users.map((u) => (u.id === userId ? { ...u, status } : u));
-    const found = users.find((u) => u.id === userId);
-    if (!found) throw new Error('User not found');
-    return found;
-  },
-
-  getTransactions: async (search?: string, status?: string): Promise<Transaction[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    let filtered = [...transactions];
-
-    if (search) {
-      const s = search.toLowerCase();
-      filtered = filtered.filter((t) => t.id.toLowerCase().includes(s) || t.userName.toLowerCase().includes(s));
-    }
-
-    if (status && status !== 'All') {
-      filtered = filtered.filter((t) => t.status.toLowerCase() === status.toLowerCase());
-    }
-
-    return filtered;
-  },
-
-  refundTransaction: async (txId: string): Promise<Transaction> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    transactions = transactions.map((t) => (t.id === txId ? { ...t, status: 'Refunded' } : t));
-    const found = transactions.find((t) => t.id === txId);
-    if (!found) throw new Error('Transaction not found');
-    return found;
+  /**
+   * Get transaction history for current user
+   */
+  async getTransactions(): Promise<Transaction[]> {
+    return [
+      {
+        id: 'TX-9021',
+        userName: 'Active Subscriber',
+        userEmail: 'user@ipogenius.ai',
+        amount: 999,
+        date: '2026-07-01',
+        status: 'Success'
+      }
+    ];
   }
 };

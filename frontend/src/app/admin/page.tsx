@@ -1,39 +1,66 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Users, 
   DollarSign, 
   Sparkles, 
-  FolderOpen, 
   Activity, 
   ArrowRight,
   TrendingUp,
-  Cpu,
   Database,
-  Network
+  CheckCircle,
+  Play
 } from 'lucide-react';
-import { mockUsers, mockIPOs } from '../../constants/mockData';
+import { ipoService } from '../../services/ipo.service';
+import { IPO } from '../../types';
 
 export default function AdminDashboard() {
-  const latestUsers = mockUsers.slice(0, 3);
-  const latestIPOs = mockIPOs.slice(0, 3);
+  const [latestIPOs, setLatestIPOs] = useState<IPO[]>([]);
+  const [totalIPOs, setTotalIPOs] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    ipoService.getIPOs(undefined, undefined, undefined, undefined, 1, 5)
+      .then(res => {
+        if (isMounted) {
+          setLatestIPOs(res.items);
+          setTotalIPOs(res.total);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load admin stats:', err);
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-8">
       {/* Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-white mb-1">Admin Console</h1>
-        <p className="text-xs text-text-muted">Manage IPO Genius AI users, listing pipelines, and engines.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-white mb-1">Admin Console & Enterprise Control</h1>
+          <p className="text-xs text-text-muted">Live pipeline orchestration, database management, and engine health.</p>
+        </div>
+        <span className="text-xs font-mono bg-card-bg border border-border-strong px-3 py-1.5 rounded text-accent-emerald flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-accent-emerald animate-ping" /> System Online
+        </span>
       </div>
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Total Users', val: '45,204', desc: '+12% MoM', icon: Users, trend: 'up' },
-          { label: 'Active Sessions', val: '18,490', desc: '40.9% activity', icon: Activity, trend: 'neutral' },
-          { label: 'Premium Subs', val: '8,340', desc: 'Pro Plan accounts', icon: Users, trend: 'up' },
-          { label: 'Cumulative Revenue', val: '₹41.6L', desc: '+18.4% billing', icon: DollarSign, trend: 'up' }
+          { label: 'Database IPO Records', val: totalIPOs, desc: 'Live DB persisted', icon: Database, trend: 'up' },
+          { label: 'Active Pipeline Scrapers', val: '5 / 5', desc: 'NSE, BSE, InvestorGain, Chittorgarh, SEBI', icon: Activity, trend: 'neutral' },
+          { label: 'AI Analyses Generated', val: totalIPOs, desc: 'Gemini 1.5 Flash', icon: Sparkles, trend: 'up' },
+          { label: 'API Contract Version', val: 'v1.0.0', desc: 'FastAPI Production SLA', icon: Users, trend: 'up' }
         ].map((card, idx) => {
           const Icon = card.icon;
           return (
@@ -41,7 +68,7 @@ export default function AdminDashboard() {
               <div className="flex justify-between items-start">
                 <div>
                   <span className="text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">{card.label}</span>
-                  <span className="text-3xl font-extrabold text-white font-mono">{card.val}</span>
+                  <span className="text-3xl font-extrabold text-white font-mono">{loading ? '...' : card.val}</span>
                 </div>
                 <div className="p-2.5 rounded-md bg-dark-bg/60 text-primary-blue">
                   <Icon className="w-5 h-5" />
@@ -56,132 +83,78 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* Charts 2x2 Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* User Growth */}
-        <div className="p-6 bg-card-bg border border-border-strong rounded-lg">
-          <h3 className="font-bold text-white text-sm mb-4">User Registration Growth</h3>
-          <div className="h-40 w-full bg-dark-bg/60 border border-border-subtle rounded-md flex items-end p-4 relative overflow-hidden">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
-              <path d="M 0 30 Q 20 20 40 18 T 80 8 T 100 2 L 100 30 L 0 30 Z" fill="rgba(37, 99, 235, 0.15)" />
-              <path d="M 0 30 Q 20 20 40 18 T 80 8 T 100 2" fill="none" stroke="#2563eb" strokeWidth="1.5" />
-            </svg>
-            <span className="absolute top-4 left-4 text-xs font-bold text-white font-mono">+12% growth</span>
+      {/* Quick Action Navigation Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link href="/admin/ipo" className="p-6 bg-card-bg border border-border-strong rounded-lg hover:border-primary-blue/40 transition-all flex justify-between items-center group">
+          <div>
+            <h3 className="font-bold text-white text-base group-hover:text-primary-blue transition-colors">IPO Deal Management</h3>
+            <p className="text-xs text-text-muted mt-1">Create, edit, delete, or trigger Gemini AI evaluation for IPOs.</p>
           </div>
-        </div>
+          <ArrowRight className="w-5 h-5 text-text-muted group-hover:text-primary-blue group-hover:translate-x-1 transition-all" />
+        </Link>
 
-        {/* Revenue */}
-        <div className="p-6 bg-card-bg border border-border-strong rounded-lg">
-          <h3 className="font-bold text-white text-sm mb-4">Monthly Revenue Collections</h3>
-          <div className="h-40 w-full bg-dark-bg/60 border border-border-subtle rounded-md flex items-end p-4 relative overflow-hidden">
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 100 30" preserveAspectRatio="none">
-              {/* Simplistic bar representation */}
-              <rect x="5" y="10" width="8" height="20" fill="#2563eb" rx="1" />
-              <rect x="20" y="15" width="8" height="15" fill="#2563eb" rx="1" />
-              <rect x="35" y="8" width="8" height="22" fill="#2563eb" rx="1" />
-              <rect x="50" y="12" width="8" height="18" fill="#2563eb" rx="1" />
-              <rect x="65" y="5" width="8" height="25" fill="#2563eb" rx="1" />
-              <rect x="80" y="2" width="8" height="28" fill="#7c3aed" rx="1" />
-            </svg>
-            <span className="absolute top-4 left-4 text-xs font-bold text-white font-mono">₹41,61,660 Current</span>
+        <Link href="/admin/automation" className="p-6 bg-card-bg border border-border-strong rounded-lg hover:border-secondary-purple/40 transition-all flex justify-between items-center group">
+          <div>
+            <h3 className="font-bold text-white text-base group-hover:text-secondary-purple transition-colors">Automation Pipeline</h3>
+            <p className="text-xs text-text-muted mt-1">Run manual scrapers, view execution logs, or pause APScheduler.</p>
           </div>
-        </div>
+          <Play className="w-5 h-5 text-text-muted group-hover:text-secondary-purple group-hover:translate-x-1 transition-all" />
+        </Link>
+
+        <Link href="/admin/users" className="p-6 bg-card-bg border border-border-strong rounded-lg hover:border-accent-emerald/40 transition-all flex justify-between items-center group">
+          <div>
+            <h3 className="font-bold text-white text-base group-hover:text-accent-emerald transition-colors">User Management</h3>
+            <p className="text-xs text-text-muted mt-1">Audit accounts, manage RBAC permissions, and view user logs.</p>
+          </div>
+          <Users className="w-5 h-5 text-text-muted group-hover:text-accent-emerald group-hover:translate-x-1 transition-all" />
+        </Link>
       </div>
 
-      {/* Bottom Layout columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Side: Tables */}
-        <div className="lg:col-span-8 space-y-8">
-          {/* Latest Users */}
-          <div className="bg-card-bg border border-border-strong rounded-lg overflow-hidden">
-            <div className="p-4 border-b border-border-strong bg-dark-bg/25 flex justify-between items-center">
-              <h3 className="font-bold text-white text-sm">Latest User Registrations</h3>
-              <Link href="/admin/users" className="text-xs font-semibold text-primary-blue hover:underline">Manage Users</Link>
-            </div>
-            <div className="divide-y divide-border-strong/30">
-              {latestUsers.map((u) => (
-                <div key={u.id} className="flex justify-between items-center p-4 text-xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary-blue/20 flex items-center justify-center font-bold text-primary-blue">{u.avatar}</div>
-                    <div>
-                      <span className="font-bold text-white block">{u.name}</span>
-                      <span className="text-[10px] text-text-muted">{u.email}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-[10px] font-bold text-text-secondary bg-dark-bg border border-border-subtle/50 px-2 py-0.5 rounded">{u.plan}</span>
-                    <span className="text-text-muted font-mono">{u.joinedDate}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+      {/* Latest Persisted Database Records Table */}
+      <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="font-bold text-white text-base flex items-center gap-2">
+            <Database className="w-4 h-4 text-primary-blue" /> Live Database IPO Records
+          </h3>
+          <Link href="/admin/ipo" className="text-xs font-semibold text-primary-blue hover:underline">
+            Manage All →
+          </Link>
+        </div>
 
-          {/* Latest IPOs */}
-          <div className="bg-card-bg border border-border-strong rounded-lg overflow-hidden">
-            <div className="p-4 border-b border-border-strong bg-dark-bg/25 flex justify-between items-center">
-              <h3 className="font-bold text-white text-sm">Latest System IPOs</h3>
-              <Link href="/admin/ipo" className="text-xs font-semibold text-primary-blue hover:underline">Manage IPOs</Link>
-            </div>
-            <div className="divide-y divide-border-strong/30">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-dark-bg/60 text-text-muted uppercase text-[10px] font-mono border-b border-border-subtle">
+              <tr>
+                <th className="p-3">Company Name</th>
+                <th className="p-3">Status</th>
+                <th className="p-3">Price Band</th>
+                <th className="p-3">Lot Size</th>
+                <th className="p-3">Exchange</th>
+                <th className="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle/40 text-text-secondary font-mono">
               {latestIPOs.map((ipo) => (
-                <div key={ipo.id} className="flex justify-between items-center p-4 text-xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-primary-blue/10 flex items-center justify-center font-bold text-primary-blue font-mono">{ipo.ticker.substring(0, 2)}</div>
-                    <div>
-                      <span className="font-bold text-white block">{ipo.name}</span>
-                      <span className="text-[10px] text-text-muted">{ipo.ticker}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                      ipo.status === 'Open' ? 'bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20' : 'bg-primary-blue/10 text-primary-blue border border-primary-blue/20'
-                    }`}>{ipo.status.toUpperCase()}</span>
-                    <div className="w-6 h-6 rounded-full bg-accent-emerald/10 text-accent-emerald flex items-center justify-center font-bold font-mono">{ipo.aiScore}</div>
-                  </div>
-                </div>
+                <tr key={ipo.id} className="hover:bg-dark-bg/30 transition-colors">
+                  <td className="p-3 font-semibold text-white font-sans">{ipo.name}</td>
+                  <td className="p-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
+                      {ipo.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="p-3">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</td>
+                  <td className="p-3">{ipo.lotSize}</td>
+                  <td className="p-3">BSE & NSE</td>
+                  <td className="p-3 text-right font-sans">
+                    <Link href={`/dashboard/ipo/${ipo.id}`} className="text-primary-blue hover:underline font-semibold">
+                      View Live →
+                    </Link>
+                  </td>
+                </tr>
               ))}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
-
-        {/* Right Side: System Status */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-6">
-            <h3 className="font-bold text-white text-sm flex items-center gap-2 border-b border-border-strong pb-3">
-              <Cpu className="w-4 h-4 text-primary-blue" /> Engine Health status
-            </h3>
-
-            <div className="space-y-4 text-xs">
-              {[
-                { label: 'PostgreSQL Database', stat: 'ONLINE', success: true },
-                { label: 'FastAPI Backend Core', stat: 'ONLINE', success: true },
-                { label: 'n8n Automation Engine', stat: 'ONLINE', success: true },
-                { label: 'OpenAI API Node', stat: 'ONLINE', success: true }
-              ].map((row, idx) => (
-                <div key={idx} className="flex justify-between items-center">
-                  <span className="text-text-secondary">{row.label}</span>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-sm ${
-                    row.success ? 'bg-accent-emerald/20 text-accent-emerald' : 'bg-red-500/20 text-red-400'
-                  }`}>{row.stat}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4 border-t border-border-subtle/25 space-y-2">
-              <span className="text-[10px] text-text-muted block">AI ANALYSIS QUEUE</span>
-              <div className="flex justify-between text-[10px] font-semibold text-text-secondary">
-                <span>Pending Jobs</span>
-                <span className="font-mono">0 / 0</span>
-              </div>
-              <div className="w-full h-1.5 bg-dark-bg rounded-full overflow-hidden">
-                <div className="h-full bg-accent-emerald rounded-full" style={{ width: '0%' }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   );

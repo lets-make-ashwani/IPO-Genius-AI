@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+
 import { CreditCard, Check, ShieldCheck, Download } from 'lucide-react';
-import { mockTransactions } from '../../../constants/mockData';
 
 export default function Subscription() {
-  const [transactions, setTransactions] = useState(mockTransactions);
+  const [transactions, setTransactions] = useState([
+    { id: 'INV-2026-001', date: '2026-07-01', amount: 999, status: 'Success' }
+  ]);
+
 
   return (
     <div className="space-y-8">

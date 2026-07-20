@@ -62,8 +62,12 @@ app.include_router(pipeline_router, prefix="/api/v1")
 
 @app.on_event("startup")
 def on_startup():
+    from app.database.base import Base
+    from app.database.session import engine
+    Base.metadata.create_all(bind=engine)
     from app.modules.pipeline.scheduler.manager import start_pipeline_scheduler
     start_pipeline_scheduler()
+
 
 @app.on_event("shutdown")
 def on_shutdown():

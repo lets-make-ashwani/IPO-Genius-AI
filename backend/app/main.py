@@ -60,6 +60,17 @@ app.include_router(subscription_router, prefix="/api/v1")
 app.include_router(payment_router, prefix="/api/v1")
 app.include_router(pipeline_router, prefix="/api/v1")
 
+@app.on_event("startup")
+def on_startup():
+    from app.modules.pipeline.scheduler.manager import start_pipeline_scheduler
+    start_pipeline_scheduler()
+
+@app.on_event("shutdown")
+def on_shutdown():
+    from app.modules.pipeline.scheduler.manager import shutdown_pipeline_scheduler
+    shutdown_pipeline_scheduler()
+
+
 
 
 

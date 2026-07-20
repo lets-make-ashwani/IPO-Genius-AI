@@ -1,32 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Grid, List, Sparkles, Filter, ChevronRight } from 'lucide-react';
-import { mockIPOs } from '../../../constants/mockData';
+import { Search, Grid, List, Sparkles, Filter, ChevronRight, ChevronLeft, RefreshCw } from 'lucide-react';
+import { ipoService } from '../../../services/ipo.service';
+import { IPO } from '../../../types';
 
 export default function IPOListing() {
   const [search, setSearch] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [ipos, setIpos] = useState<IPO[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const limit = 9;
 
-  const sectors = ['All', 'FMCG', 'EV', 'Finance', 'Technology'];
+  const sectors = ['All', 'FMCG', 'EV', 'Finance', 'Technology', 'Healthcare', 'Automobile'];
   const statuses = ['All', 'Open', 'Upcoming', 'Closed', 'Listed'];
 
-  const filteredIPOs = mockIPOs.filter((ipo) => {
-    const matchesSearch = ipo.name.toLowerCase().includes(search.toLowerCase()) || ipo.ticker.toLowerCase().includes(search.toLowerCase());
-    const matchesSector = selectedSector === 'All' || ipo.sector.includes(selectedSector);
-    const matchesStatus = selectedStatus === 'All' || ipo.status.toLowerCase() === selectedStatus.toLowerCase();
-    return matchesSearch && matchesSector && matchesStatus;
-  });
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    ipoService.getIPOs(search, selectedStatus, selectedSector, 'All', page, limit)
+      .then((res) => {
+        if (isMounted) {
+          setIpos(res.items);
+          setTotal(res.total);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load IPOs:', err);
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [search, selectedStatus, selectedSector, page]);
+
+  const totalPages = Math.ceil(total / limit) || 1;
 
   return (
     <div className="space-y-6">
       {/* Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-white mb-1">IPO Listings</h1>
-        <p className="text-xs text-text-muted">Browse active, upcoming, and listed deals.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-white mb-1">IPO Listings</h1>
+          <p className="text-xs text-text-muted">Browse active, upcoming, and listed market opportunities.</p>
+        </div>
+        <span className="text-xs font-mono bg-card-bg border border-border-strong px-3 py-1 rounded text-text-secondary">
+          Live FastAPI Backend
+        </span>
       </div>
 
       {/* Filters Control Header */}
@@ -36,9 +64,12 @@ export default function IPOListing() {
           <Search className="absolute left-3 top-3 w-4 h-4 text-text-muted" />
           <input
             type="text"
-            placeholder="Search by company or ticker..."
+            placeholder="Search by company or sector..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="w-full h-10 pl-10 pr-4 rounded-md bg-dark-bg border border-border-subtle focus:border-primary-blue text-sm focus:outline-none focus:ring-1 focus:ring-primary-blue transition-all"
           />
         </div>
@@ -50,7 +81,10 @@ export default function IPOListing() {
             <span className="text-xs text-text-muted font-bold uppercase tracking-wider">Status:</span>
             <select
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              onChange={(e) => {
+                setSelectedStatus(e.target.value);
+                setPage(1);
+              }}
               className="h-9 px-3 rounded bg-dark-bg border border-border-subtle text-xs text-text-secondary focus:outline-none focus:border-primary-blue"
             >
               {statuses.map(st => <option key={st}>{st}</option>)}
@@ -62,7 +96,10 @@ export default function IPOListing() {
             <span className="text-xs text-text-muted font-bold uppercase tracking-wider">Sector:</span>
             <select
               value={selectedSector}
-              onChange={(e) => setSelectedSector(e.target.value)}
+              onChange={(e) => {
+                setSelectedSector(e.target.value);
+                setPage(1);
+              }}
               className="h-9 px-3 rounded bg-dark-bg border border-border-subtle text-xs text-text-secondary focus:outline-none focus:border-primary-blue"
             >
               {sectors.map(sec => <option key={sec}>{sec}</option>)}
@@ -89,126 +126,154 @@ export default function IPOListing() {
         </div>
       </div>
 
-      {/* Grid Mode View */}
-      {viewMode === 'grid' ? (
+      {/* Loading Skeletons */}
+      {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {filteredIPOs.length > 0 ? (
-            filteredIPOs.map((ipo) => (
+          {[1, 2, 3, 4, 5, 6].map((idx) => (
+            <div key={idx} className="p-6 rounded-lg bg-card-bg border border-border-strong animate-pulse h-96 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <div className="w-10 h-10 bg-border-subtle rounded-md" />
+                  <div className="w-16 h-6 bg-border-subtle rounded-full" />
+                </div>
+                <div className="h-6 w-3/4 bg-border-subtle rounded" />
+                <div className="h-4 w-1/2 bg-border-subtle rounded" />
+                <div className="h-20 bg-border-subtle rounded" />
+              </div>
+              <div className="h-10 bg-border-subtle rounded" />
+            </div>
+          ))}
+        </div>
+      ) : viewMode === 'grid' ? (
+        /* Grid Mode View */
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {ipos.length > 0 ? (
+            ipos.map((ipo) => (
               <div key={ipo.id} className="p-6 rounded-lg bg-card-bg border border-border-strong hover:border-primary-blue/30 transition-all flex flex-col justify-between h-96">
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <div className="w-10 h-10 rounded-md bg-gradient-to-br from-primary-blue/10 to-secondary-purple/10 flex items-center justify-center font-bold text-primary-blue font-mono">
-                      {ipo.name.charAt(0)}
+                      {ipo.ticker.substring(0, 2)}
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       ipo.status === 'Open' ? 'bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20' :
                       ipo.status === 'Upcoming' ? 'bg-primary-blue/10 text-primary-blue border border-primary-blue/20' :
-                      'bg-red-500/10 text-red-400 border border-red-500/20'
+                      'bg-dark-bg text-text-muted border border-border-subtle'
                     }`}>
                       {ipo.status.toUpperCase()}
                     </span>
                   </div>
-                  
-                  <h3 className="text-base font-bold text-white mb-1">{ipo.name}</h3>
-                  <span className="text-xs text-text-muted block mb-4">{ipo.sector}</span>
-                  
-                  <div className="grid grid-cols-2 gap-4 text-xs border-t border-border-subtle/40 pt-4">
+
+                  <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{ipo.name}</h3>
+                  <span className="text-xs text-text-muted mb-4 block font-mono">Sector: {ipo.sector}</span>
+
+                  <div className="grid grid-cols-2 gap-4 py-3 border-y border-border-subtle/50 text-xs mb-4">
                     <div>
-                      <span className="text-text-muted block mb-0.5">PRICE BAND</span>
-                      <span className="font-bold text-white font-mono">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</span>
+                      <span className="text-[10px] text-text-muted block font-mono">PRICE BAND</span>
+                      <span className="font-semibold text-white">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</span>
                     </div>
                     <div>
-                      <span className="text-text-muted block mb-0.5">ISSUE SIZE</span>
-                      <span className="font-bold text-white font-mono">₹{ipo.issueSize} Cr</span>
+                      <span className="text-[10px] text-text-muted block font-mono">LOT SIZE</span>
+                      <span className="font-semibold text-white">{ipo.lotSize} Shares</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-xs mb-4">
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Issue Open:</span>
+                      <span className="font-semibold text-text-secondary">{ipo.openDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">Issue Close:</span>
+                      <span className="font-semibold text-text-secondary">{ipo.closeDate}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-border-subtle/40 pt-4 mt-6">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs ${
-                      ipo.aiScore >= 80 ? 'border-accent-emerald text-accent-emerald' : 'border-yellow-500 text-yellow-500'
-                    }`}>
-                      {ipo.aiScore}
-                    </div>
-                    <div className="text-left leading-none">
-                      <span className="text-[9px] text-text-muted block font-mono">AI SCORE</span>
-                      <span className="text-[10px] font-bold text-white">{ipo.aiRecommendation}</span>
-                    </div>
-                  </div>
-                  <Link href={`/dashboard/ipo/${ipo.id}`} className="text-xs font-semibold bg-border-subtle hover:bg-border-strong text-white px-3.5 py-2 rounded-md transition-colors">
-                    Details →
-                  </Link>
-                </div>
+                <Link
+                  href={`/dashboard/ipo/${ipo.id}`}
+                  className="w-full bg-dark-bg hover:bg-card-bg border border-border-subtle hover:border-primary-blue/40 text-text-primary text-xs font-semibold py-2.5 rounded-md flex items-center justify-center gap-1 transition-all"
+                >
+                  View Details & AI Score <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             ))
           ) : (
-            <div className="col-span-full text-center py-20 text-text-muted bg-card-bg/30 rounded-lg border border-border-strong border-dashed">
-              No IPOs match your search options.
+            <div className="col-span-3 py-16 text-center bg-card-bg border border-border-strong rounded-lg">
+              <Filter className="w-10 h-10 text-text-muted mx-auto mb-3" />
+              <h3 className="text-base font-bold text-white mb-1">No IPOs Found</h3>
+              <p className="text-xs text-text-muted">Try clearing search terms or selecting another sector/status filter.</p>
             </div>
           )}
         </div>
       ) : (
         /* Table Mode View */
         <div className="bg-card-bg border border-border-strong rounded-lg overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-border-strong bg-dark-bg/40 text-xs font-bold text-text-muted uppercase tracking-wider">
-                <th className="p-4 pl-6">Company</th>
-                <th className="p-4">Sector</th>
-                <th className="p-4">Price Band</th>
-                <th className="p-4">Issue Size</th>
+          <table className="w-full text-left text-xs">
+            <thead className="bg-dark-bg/60 text-text-muted uppercase text-[10px] font-mono border-b border-border-subtle">
+              <tr>
+                <th className="p-4">Company Name</th>
                 <th className="p-4">Status</th>
-                <th className="p-4">AI Score</th>
-                <th className="p-4 pr-6 text-right">Action</th>
+                <th className="p-4">Price Band</th>
+                <th className="p-4">Lot Size</th>
+                <th className="p-4">Open Date</th>
+                <th className="p-4">Close Date</th>
+                <th className="p-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="text-sm text-text-secondary divide-y divide-border-strong/30">
-              {filteredIPOs.length > 0 ? (
-                filteredIPOs.map((ipo) => (
-                  <tr key={ipo.id} className="hover:bg-dark-bg/25 transition-colors">
-                    <td className="p-4 pl-6 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-primary-blue/10 flex items-center justify-center font-bold text-primary-blue text-sm font-mono">{ipo.ticker.substring(0, 2)}</div>
-                      <div>
-                        <span className="font-bold text-white block">{ipo.name}</span>
-                        <span className="text-[10px] text-text-muted font-mono">{ipo.ticker}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-xs">{ipo.sector}</td>
-                    <td className="p-4 font-mono font-semibold">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</td>
-                    <td className="p-4 font-mono font-semibold">₹{ipo.issueSize} Cr</td>
-                    <td className="p-4">
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                        ipo.status === 'Open' ? 'bg-accent-emerald/10 text-accent-emerald' :
-                        ipo.status === 'Upcoming' ? 'bg-primary-blue/10 text-primary-blue' :
-                        'bg-red-500/10 text-red-400'
-                      }`}>
-                        {ipo.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded-full ${
-                        ipo.aiScore >= 80 ? 'bg-accent-emerald/10 text-accent-emerald' : 'bg-yellow-500/10 text-yellow-500'
-                      }`}>
-                        {ipo.aiScore} ({ipo.aiRecommendation})
-                      </span>
-                    </td>
-                    <td className="p-4 pr-6 text-right">
-                      <Link href={`/dashboard/ipo/${ipo.id}`} className="text-xs font-semibold text-primary-blue hover:underline">
-                        Details
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="text-center py-16 text-text-muted">
-                    No IPOs match your search options.
+            <tbody className="divide-y divide-border-subtle/50 text-text-secondary">
+              {ipos.map((ipo) => (
+                <tr key={ipo.id} className="hover:bg-dark-bg/40 transition-colors">
+                  <td className="p-4 font-semibold text-white">
+                    {ipo.name}
+                    <span className="block text-[10px] text-text-muted font-mono">{ipo.sector}</span>
+                  </td>
+                  <td className="p-4">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      ipo.status === 'Open' ? 'bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20' :
+                      'bg-primary-blue/10 text-primary-blue border border-primary-blue/20'
+                    }`}>
+                      {ipo.status}
+                    </span>
+                  </td>
+                  <td className="p-4 font-mono">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</td>
+                  <td className="p-4 font-mono">{ipo.lotSize}</td>
+                  <td className="p-4">{ipo.openDate}</td>
+                  <td className="p-4">{ipo.closeDate}</td>
+                  <td className="p-4 text-right">
+                    <Link href={`/dashboard/ipo/${ipo.id}`} className="text-primary-blue hover:underline font-semibold">
+                      Details →
+                    </Link>
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && total > limit && (
+        <div className="flex items-center justify-between pt-4 border-t border-border-subtle">
+          <span className="text-xs text-text-muted">
+            Showing Page {page} of {totalPages} ({total} total IPOs)
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="p-2 bg-card-bg border border-border-subtle rounded text-text-muted hover:text-white disabled:opacity-40"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="p-2 bg-card-bg border border-border-subtle rounded text-text-muted hover:text-white disabled:opacity-40"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
     </div>

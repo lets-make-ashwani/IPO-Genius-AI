@@ -1,81 +1,142 @@
-import { IPO } from '../types';
-import { mockIPOs } from '../constants/mockData';
+/**
+ * ipo.service.ts — Live FastAPI IPO Domain Service
+ *
+ * Connects Next.js frontend pages directly to live backend REST API endpoints
+ * defined in API Contract V1 (`docs/api/API_CONTRACT_V1.md`).
+ */
 
-// Simulated in-memory database for mock state persistence
-let ipoList: IPO[] = [...mockIPOs];
+import { apiClient } from '../api/client';
+import { toFrontendIPO } from '../lib/ipo.adapter';
+import { IPO } from '../types';
+import {
+  BackendApiResponse,
+  BackendIPOResponse,
+  BackendIPOAnalysis,
+  BackendIPOFinancials,
+  BackendIPOSubscription,
+  BackendIPODocuments,
+  BackendIPONews,
+} from '../types/api';
 
 export const ipoService = {
-  getIPOs: async (search?: string, status?: string, sector?: string): Promise<IPO[]> => {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    
-    let filtered = [...ipoList];
-    
-    if (search) {
-      const s = search.toLowerCase();
-      filtered = filtered.filter(
-        (ipo) =>
-          ipo.name.toLowerCase().includes(s) ||
-          ipo.ticker.toLowerCase().includes(s) ||
-          ipo.sector.toLowerCase().includes(s)
-      );
-    }
-    
-    if (status && status !== 'All') {
-      filtered = filtered.filter((ipo) => ipo.status.toLowerCase() === status.toLowerCase());
-    }
-    
-    if (sector && sector !== 'All') {
-      filtered = filtered.filter((ipo) => ipo.sector.toLowerCase().includes(sector.toLowerCase()));
-    }
-    
-    return filtered;
-  },
-
-  getIPOById: async (id: string): Promise<IPO | undefined> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return ipoList.find((ipo) => ipo.id === id);
-  },
-
-  createIPO: async (ipo: Omit<IPO, 'id' | 'aiScore' | 'aiRecommendation'>): Promise<IPO> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const newIPO: IPO = {
-      ...ipo,
-      id: ipo.name.toLowerCase().replace(/ /g, '-'),
-      aiScore: Math.floor(Math.random() * 30) + 60, // random score 60-90
-      aiRecommendation: 'Buy'
+  /**
+   * Fetch paginated list of IPOs with filters and search
+   */
+  async getIPOs(
+    search?: string,
+    status?: string,
+    sector?: string,
+    exchange?: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ items: IPO[]; total: number }> {
+    const params: Record<string, any> = {
+      limit,
+      offset: (page - 1) * limit,
     };
-    ipoList = [newIPO, ...ipoList];
-    return newIPO;
+
+    if (search && search.trim()) {
+      params.search = search.trim();
+    }
+    if (status && status !== 'All') {
+      params.status = status.toUpperCase();
+    }
+    if (sector && sector !== 'All') {
+      params.sector = sector.trim();
+    }
+    if (exchange && exchange !== 'All') {
+      params.exchange = exchange.trim();
+    }
+
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPOResponse[]>>('/ipos', { params });
+      const rawItems = response.data || [];
+      const items = rawItems.map(toFrontendIPO);
+      
+      const total = (response as any).pagination?.total || (response as any).meta?.total || items.length;
+      return { items, total };
+    } catch (error) {
+      console.error('Error fetching IPOs:', error);
+      return { items: [], total: 0 };
+    }
   },
 
-  updateIPO: async (id: string, updated: Partial<IPO>): Promise<IPO> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    ipoList = ipoList.map((ipo) => (ipo.id === id ? { ...ipo, ...updated } : ipo));
-    const found = ipoList.find((ipo) => ipo.id === id);
-    if (!found) throw new Error('IPO not found');
-    return found;
+  /**
+   * Fetch single IPO detail by ID or Slug
+   */
+  async getIPOById(idOrSlug: string): Promise<IPO | undefined> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPOResponse>>(`/ipos/${idOrSlug}`);
+      if (!response.data) return undefined;
+      return toFrontendIPO(response.data);
+    } catch (error) {
+      console.error(`Error fetching IPO ${idOrSlug}:`, error);
+      return undefined;
+    }
   },
 
-  deleteIPO: async (id: string): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    const exists = ipoList.some((ipo) => ipo.id === id);
-    ipoList = ipoList.filter((ipo) => ipo.id !== id);
-    return exists;
+  /**
+   * Fetch Gemini AI Analysis for an IPO
+   */
+  async getIPOAnalysis(idOrSlug: string): Promise<BackendIPOAnalysis | undefined> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPOAnalysis>>(`/ipos/${idOrSlug}/analysis`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching AI analysis for ${idOrSlug}:`, error);
+      return undefined;
+    }
   },
 
-  triggerAIAnalysis: async (id: string): Promise<IPO> => {
-    await new Promise((resolve) => setTimeout(resolve, 1500)); // longer AI latency simulation
-    const ipo = ipoList.find((i) => i.id === id);
-    if (!ipo) throw new Error('IPO not found');
-    
-    const newScore = Math.floor(Math.random() * 20) + 75; // 75-95 score
-    const recs: IPO['aiRecommendation'][] = ['Strong Buy', 'Buy', 'Hold'];
-    const newRec = recs[Math.floor(Math.random() * recs.length)];
-    
-    return ipoService.updateIPO(id, {
-      aiScore: newScore,
-      aiRecommendation: newRec
-    });
-  }
+  /**
+   * Fetch Financials for an IPO
+   */
+  async getIPOFinancials(idOrSlug: string): Promise<BackendIPOFinancials | undefined> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPOFinancials>>(`/ipos/${idOrSlug}/financials`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching financials for ${idOrSlug}:`, error);
+      return undefined;
+    }
+  },
+
+  /**
+   * Fetch Subscription Ratios for an IPO
+   */
+  async getIPOSubscription(idOrSlug: string): Promise<BackendIPOSubscription | undefined> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPOSubscription>>(`/ipos/${idOrSlug}/subscription`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching subscription for ${idOrSlug}:`, error);
+      return undefined;
+    }
+  },
+
+  /**
+   * Fetch Regulatory Documents for an IPO
+   */
+  async getIPODocuments(idOrSlug: string): Promise<BackendIPODocuments | undefined> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPODocuments>>(`/ipos/${idOrSlug}/documents`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching documents for ${idOrSlug}:`, error);
+      return undefined;
+    }
+  },
+
+  /**
+   * Fetch Related News Articles for an IPO
+   */
+  async getIPONews(idOrSlug: string): Promise<BackendIPONews | undefined> {
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPONews>>(`/ipos/${idOrSlug}/news`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching news for ${idOrSlug}:`, error);
+      return undefined;
+    }
+  },
 };

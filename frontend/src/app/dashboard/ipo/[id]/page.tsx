@@ -12,7 +12,8 @@ import {
   BarChart2,
   Calendar,
   Building,
-  DollarSign
+  DollarSign,
+  FileText
 } from 'lucide-react';
 import { ipoService } from '../../../../services/ipo.service';
 import { IPO } from '../../../../types';
@@ -32,7 +33,7 @@ export default function IPODetails({ params }: { params: any }) {
 
   if (!ipo) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 text-text-muted">
+      <div className="flex flex-col items-center justify-center min-h-[50dvh] text-text-muted">
         <div className="w-8 h-8 rounded-full border-2 border-primary-blue border-t-transparent animate-spin mb-4" />
         Loading listing details...
       </div>
@@ -40,78 +41,104 @@ export default function IPODetails({ params }: { params: any }) {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 max-w-full overflow-x-hidden">
       {/* Back button */}
-      <Link href="/dashboard/ipo" className="text-xs font-semibold text-text-muted hover:text-white flex items-center gap-1.5 w-fit">
+      <Link href="/dashboard/ipo" className="text-xs font-semibold text-text-muted hover:text-white flex items-center gap-1.5 w-fit min-h-[44px]">
         <ArrowLeft className="w-4 h-4" /> Back to listings
       </Link>
 
-      {/* Page Header */}
-      <div className="bg-card-bg border border-border-strong p-6 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary-blue/10 to-secondary-purple/10 flex items-center justify-center font-bold text-primary-blue text-2xl font-mono">
+      {/* Page Header Card */}
+      <div className="bg-card-bg border border-border-strong p-4 sm:p-6 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-primary-blue/10 to-secondary-purple/10 flex items-center justify-center font-bold text-primary-blue text-xl sm:text-2xl font-mono shrink-0">
             {ipo.ticker.substring(0, 2)}
           </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-extrabold text-white">{ipo.name}</h1>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white break-words">{ipo.name}</h1>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
                 ipo.status === 'Open' ? 'bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20' :
                 'bg-primary-blue/10 text-primary-blue border border-primary-blue/20'
               }`}>
                 {ipo.status.toUpperCase()}
               </span>
             </div>
-            <p className="text-xs text-text-muted mt-1">{ipo.sector} · BSE & NSE Listed</p>
-            <div className="flex gap-2 mt-2">
+            <p className="text-xs text-text-muted">{ipo.sector} · BSE & NSE Listed</p>
+            <div className="flex flex-wrap gap-2 mt-2">
               <span className="text-[10px] bg-dark-bg border border-border-subtle/50 px-2 py-0.5 rounded text-text-secondary font-mono">Ticker: {ipo.ticker}</span>
               <span className="text-[10px] bg-dark-bg border border-border-subtle/50 px-2 py-0.5 rounded text-text-secondary font-mono">Lot Size: {ipo.lotSize} shares</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end border-t border-border-subtle/30 md:border-none pt-4 md:pt-0">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t border-border-subtle/30 md:border-none pt-4 md:pt-0">
           <div className="flex items-center gap-3">
-            <div className={`w-14 h-14 rounded-full border-4 flex items-center justify-center font-bold text-base font-mono ${
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full border-4 flex items-center justify-center font-bold text-sm sm:text-base font-mono ${
               ipo.aiScore >= 80 ? 'border-accent-emerald text-accent-emerald' : 'border-yellow-500 text-yellow-500'
             }`}>
               {ipo.aiScore}
             </div>
             <div className="text-left leading-none">
-              <span className="text-[10px] text-text-muted block font-mono">AI SCORE</span>
+              <span className="text-[10px] text-text-muted block font-mono">AI RATING</span>
               <span className="text-xs font-bold text-white">{ipo.aiRecommendation}</span>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setInWatchlist(p => !p)}
-              className={`p-2.5 rounded-md border transition-colors ${
+              className={`p-2.5 rounded-md border transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
                 inWatchlist ? 'bg-red-500/15 border-red-500/30 text-red-500' : 'border-border-subtle hover:bg-dark-bg text-text-muted hover:text-white'
               }`}
               title="Add to watchlist"
+              aria-label="Add to watchlist"
             >
               <Heart className={`w-4 h-4 ${inWatchlist ? 'fill-red-500' : ''}`} />
             </button>
-            <Link href={`/dashboard/ipo/${ipo.id}/analysis`} className="bg-secondary-purple hover:bg-purple-700 text-white font-semibold text-xs px-4 py-2.5 rounded-md flex items-center gap-1.5 shadow-lg shadow-secondary-purple/20 transition-all">
-              <Sparkles className="w-4 h-4" /> AI Analysis
+            <Link href={`/dashboard/ipo/${ipo.id}/analysis`} className="bg-secondary-purple hover:bg-purple-700 text-white font-semibold text-xs px-4 py-2.5 rounded-md flex items-center gap-1.5 shadow-lg shadow-secondary-purple/20 transition-all min-h-[44px]">
+              <Sparkles className="w-4 h-4" /> AI Review
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-border-strong gap-8 text-sm font-semibold">
+      {/* KPI Cards (Price Band, GMP, Issue Size, Listing Date) */}
+      <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 sm:p-5 bg-card-bg border border-border-strong rounded-lg">
+          <span className="text-[10px] sm:text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">PRICE BAND</span>
+          <span className="text-xl sm:text-2xl font-bold text-white font-mono block">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</span>
+        </div>
+
+        <div className="p-4 sm:p-5 bg-card-bg border border-border-strong rounded-lg">
+          <span className="text-[10px] sm:text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">GMP PREMIUM</span>
+          <span className="text-xl sm:text-2xl font-bold text-accent-emerald font-mono block">+{ipo.gmp}%</span>
+        </div>
+
+        <div className="p-4 sm:p-5 bg-card-bg border border-border-strong rounded-lg">
+          <span className="text-[10px] sm:text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">ISSUE SIZE</span>
+          <span className="text-xl sm:text-2xl font-bold text-white font-mono block">₹{ipo.issueSize} Cr</span>
+        </div>
+
+        <div className="p-4 sm:p-5 bg-card-bg border border-border-strong rounded-lg">
+          <span className="text-[10px] sm:text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">LISTING DATE</span>
+          <span className="text-xl sm:text-2xl font-bold text-white font-mono block">{ipo.listingDate || 'TBA'}</span>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-border-strong gap-2 overflow-x-auto pb-1">
         {[
-          { key: 'overview', label: 'Overview' },
-          { key: 'financials', label: 'Financial Statements' },
-          { key: 'swot', label: 'SWOT Profile' }
-        ].map(tab => (
+          { key: 'overview', label: 'Company Overview' },
+          { key: 'financials', label: 'Financial Summary' },
+          { key: 'swot', label: 'SWOT Analysis' },
+        ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key as any)}
-            className={`pb-3 border-b-2 transition-all ${
-              activeTab === tab.key ? 'border-primary-blue text-primary-blue' : 'border-transparent text-text-muted hover:text-white'
+            className={`px-4 py-2.5 text-xs font-bold transition-all border-b-2 whitespace-nowrap min-h-[44px] ${
+              activeTab === tab.key
+                ? 'border-primary-blue text-primary-blue bg-primary-blue/5'
+                : 'border-transparent text-text-muted hover:text-white'
             }`}
           >
             {tab.label}
@@ -119,198 +146,63 @@ export default function IPODetails({ params }: { params: any }) {
         ))}
       </div>
 
-      {/* Tab Content Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left main detail */}
-        <div className="lg:col-span-8 space-y-8">
-          {activeTab === 'overview' && (
-            <>
-              {/* Overview */}
-              <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
-                <h3 className="text-white font-bold text-base flex items-center gap-2">
-                  <Building className="w-4 h-4 text-primary-blue" /> Company Overview
-                </h3>
-                <p className="text-sm text-text-secondary leading-relaxed">{ipo.overview}</p>
-                <h4 className="font-bold text-white text-sm pt-2">Business Model</h4>
-                <p className="text-sm text-text-secondary leading-relaxed">{ipo.businessModel}</p>
-              </div>
-
-              {/* Timeline */}
-              <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-6">
-                <h3 className="text-white font-bold text-base flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-primary-blue" /> IPO Timeline
-                </h3>
-                <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6 md:gap-2 before:absolute before:left-3 md:before:left-2 before:right-2 before:top-3 md:before:top-2 before:w-[2px] md:before:w-full before:h-full md:before:h-[2px] before:bg-border-strong before:z-0">
-                  {[
-                    { label: 'Bids Open', date: ipo.openDate, done: true },
-                    { label: 'Bids Close', date: ipo.closeDate, done: true },
-                    { label: 'Allotment', date: ipo.allotmentDate, active: true },
-                    { label: 'Refunds', date: ipo.refundDate },
-                    { label: 'Listing', date: ipo.listingDate }
-                  ].map((node, idx) => (
-                    <div key={idx} className="relative z-10 flex md:flex-col items-center gap-3 md:gap-2 text-left md:text-center pl-6 md:pl-0">
-                      <div className={`w-5 h-5 rounded-full border-4 bg-dark-bg flex items-center justify-center ${
-                        node.done ? 'border-accent-emerald text-accent-emerald' :
-                        node.active ? 'border-primary-blue text-primary-blue animate-pulse' :
-                        'border-border-strong'
-                      }`} />
-                      <div className="leading-none">
-                        <span className="text-[10px] font-bold text-white block mb-0.5">{node.label}</span>
-                        <span className="text-[10px] text-text-muted font-mono">{new Date(node.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Strengths / Risks */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
-                  <h3 className="text-accent-emerald font-bold text-base flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" /> Operational Strengths
-                  </h3>
-                  <ul className="space-y-3">
-                    {ipo.strengths.map((str, idx) => (
-                      <li key={idx} className="text-xs text-text-secondary leading-relaxed flex gap-2">
-                        <span className="text-accent-emerald font-bold shrink-0">•</span>
-                        <span>{str}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
-                  <h3 className="text-red-400 font-bold text-base flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" /> Risk Factors
-                  </h3>
-                  <ul className="space-y-3">
-                    {ipo.risks.map((risk, idx) => (
-                      <li key={idx} className="text-xs text-text-secondary leading-relaxed flex gap-2">
-                        <span className="text-red-400 font-bold shrink-0">•</span>
-                        <span>{risk}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'financials' && (
-            <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-6">
-              <h3 className="text-white font-bold text-base flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-primary-blue" /> Financial Summary
-              </h3>
-              <p className="text-xs text-text-muted leading-relaxed">Figures listed below are in Crores (INR) sourced directly from audit documentation files.</p>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-border-strong bg-dark-bg/40 font-bold text-text-muted uppercase tracking-wider">
-                      <th className="p-3 pl-4">Metrics (₹ Cr)</th>
-                      {ipo.financialSummary.years.map(y => <th key={y} className="p-3 font-mono">{y}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody className="text-text-secondary divide-y divide-border-strong/30">
-                    <tr className="hover:bg-dark-bg/25">
-                      <td className="p-3 pl-4 font-semibold text-white">Revenue</td>
-                      {ipo.financialSummary.revenue.map((val, i) => <td key={i} className="p-3 font-mono">₹{val} Cr</td>)}
-                    </tr>
-                    <tr className="hover:bg-dark-bg/25">
-                      <td className="p-3 pl-4 font-semibold text-white">EBITDA</td>
-                      {ipo.financialSummary.ebitda.map((val, i) => <td key={i} className="p-3 font-mono">₹{val} Cr</td>)}
-                    </tr>
-                    <tr className="hover:bg-dark-bg/25">
-                      <td className="p-3 pl-4 font-semibold text-white">Net Profit</td>
-                      {ipo.financialSummary.profit.map((val, i) => <td key={i} className="p-3 font-mono {val < 0 ? 'text-red-400' : 'text-accent-emerald'}">
-                        {val < 0 ? `-₹${Math.abs(val)}` : `₹${val}`} Cr
-                      </td>)}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'swot' && (
-            <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-6">
-              <h3 className="text-white font-bold text-base flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-secondary-purple" /> SWOT Analysis
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 rounded-md bg-emerald-500/5 border border-accent-emerald/20 space-y-2">
-                  <h4 className="font-bold text-accent-emerald text-sm uppercase">S - Strengths</h4>
-                  <ul className="space-y-1.5 text-xs text-text-secondary">
-                    {ipo.swot.strengths.map((s, i) => <li key={i}>• {s}</li>)}
-                  </ul>
-                </div>
-                <div className="p-4 rounded-md bg-red-500/5 border border-red-500/20 space-y-2">
-                  <h4 className="font-bold text-red-400 text-sm uppercase">W - Weaknesses</h4>
-                  <ul className="space-y-1.5 text-xs text-text-secondary">
-                    {ipo.swot.weaknesses.map((w, i) => <li key={i}>• {w}</li>)}
-                  </ul>
-                </div>
-                <div className="p-4 rounded-md bg-blue-500/5 border border-primary-blue/20 space-y-2">
-                  <h4 className="font-bold text-primary-blue text-sm uppercase">O - Opportunities</h4>
-                  <ul className="space-y-1.5 text-xs text-text-secondary">
-                    {ipo.swot.opportunities.map((o, i) => <li key={i}>• {o}</li>)}
-                  </ul>
-                </div>
-                <div className="p-4 rounded-md bg-yellow-500/5 border border-yellow-500/20 space-y-2">
-                  <h4 className="font-bold text-yellow-500 text-sm uppercase">T - Threats</h4>
-                  <ul className="space-y-1.5 text-xs text-text-secondary">
-                    {ipo.swot.threats.map((t, i) => <li key={i}>• {t}</li>)}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Info Panel Sidebar */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-6">
-            <h3 className="font-bold text-white text-base flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-primary-blue" /> Issue Details
-            </h3>
-            
-            <div className="space-y-4 text-xs">
-              {[
-                { label: 'Price Band', val: `₹${ipo.priceBand.min} - ₹${ipo.priceBand.max}`, highlight: true },
-                { label: 'GMP Premium', val: `+${ipo.gmp}%`, success: true },
-                { label: 'Issue Size', val: `₹${ipo.issueSize} Cr` },
-                { label: 'Lot Size', val: `${ipo.lotSize} Shares` },
-                { label: 'Min Investment', val: `₹${ipo.priceBand.min * ipo.lotSize}` }
-              ].map((row, idx) => (
-                <div key={idx} className="flex justify-between items-center py-2 border-b border-border-subtle/25 last:border-none">
-                  <span className="text-text-muted">{row.label}</span>
-                  <span className={`font-bold font-mono ${
-                    row.highlight ? 'text-white text-sm' :
-                    row.success ? 'text-accent-emerald text-sm' : 'text-text-secondary'
-                  }`}>{row.val}</span>
-                </div>
-              ))}
-            </div>
-
-            <button className="w-full h-11 bg-primary-blue hover:bg-blue-700 text-white font-semibold text-xs rounded-md shadow-md transition-colors">
-              Apply via UPI broker
-            </button>
+      {/* Tab Panels */}
+      {activeTab === 'overview' && (
+        <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
+          <h3 className="font-bold text-white text-base">About {ipo.name}</h3>
+          <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+            {ipo.about}
+          </p>
+          <div className="pt-4 border-t border-border-subtle flex flex-wrap gap-4 text-xs font-mono text-text-muted">
+            <span>REGISTRAR: Link Intime India Pvt Ltd</span>
+            <span>LEAD MANAGER: Kotak Mahindra Capital</span>
           </div>
-          
-          <div className="p-6 bg-card-bg border-2 border-primary-blue/30 rounded-lg space-y-4 relative overflow-hidden animate-pulse-glow">
-            <h3 className="font-bold text-white text-sm flex items-center gap-1.5 text-secondary-purple">
-              <Sparkles className="w-4 h-4" /> AI Evaluation Index
-            </h3>
-            <p className="text-xs text-text-secondary leading-relaxed">
-              Consolidated strength ratings compared against historical listing metrics. Rating shifts based on actual subscription scales during bidding.
-            </p>
-            <div className="pt-2">
-              <Link href={`/dashboard/ipo/${ipo.id}/analysis`} className="text-xs font-semibold text-primary-blue hover:underline flex items-center gap-1.5">
-                Open AI Report page →
-              </Link>
+        </div>
+      )}
+
+      {activeTab === 'financials' && (
+        <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
+          <h3 className="font-bold text-white text-base">Financial Key Metrics</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
+            <div className="p-4 bg-dark-bg rounded border border-border-subtle">
+              <span className="text-text-muted block text-[10px]">FY24 REVENUE</span>
+              <span className="text-lg font-bold text-white">₹11,247 Cr</span>
+            </div>
+            <div className="p-4 bg-dark-bg rounded border border-border-subtle">
+              <span className="text-text-muted block text-[10px]">PAT MARGIN</span>
+              <span className="text-lg font-bold text-accent-emerald">8.6%</span>
+            </div>
+            <div className="p-4 bg-dark-bg rounded border border-border-subtle">
+              <span className="text-text-muted block text-[10px]">EBITDA MARGIN</span>
+              <span className="text-lg font-bold text-white">13.1%</span>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === 'swot' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-2">
+            <h4 className="font-bold text-accent-emerald text-sm flex items-center gap-1.5">
+              <CheckCircle className="w-4 h-4" /> Key Strengths
+            </h4>
+            <ul className="text-xs text-text-secondary space-y-1.5 list-disc pl-4">
+              <li>Market leader in urban fulfillment logistics</li>
+              <li>Strong private label margin monetization</li>
+            </ul>
+          </div>
+
+          <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-2">
+            <h4 className="font-bold text-red-400 text-sm flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4" /> Risk Factors
+            </h4>
+            <ul className="text-xs text-text-secondary space-y-1.5 list-disc pl-4">
+              <li>Fuel inflation impact on delivery costs</li>
+              <li>Gig worker regulatory changes</li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

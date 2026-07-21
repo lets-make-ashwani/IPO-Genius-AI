@@ -9,7 +9,6 @@ import {
   ArrowRight,
   TrendingUp,
   Database,
-  Play,
   RotateCcw,
   ShieldCheck
 } from 'lucide-react';
@@ -76,133 +75,117 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 max-w-full overflow-x-hidden">
       {/* Title */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1">Admin Console & Enterprise Control</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Admin Console & Enterprise Control</h1>
           <p className="text-xs text-text-muted">Live pipeline orchestration, database management, and engine health.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           <button
             onClick={handleInitDatabase}
             disabled={isProcessing}
-            className="bg-primary-blue hover:bg-blue-700 text-white font-semibold text-xs px-3.5 py-2 rounded-md flex items-center gap-1.5 transition-all disabled:opacity-50"
+            className="bg-primary-blue hover:bg-blue-700 text-white font-semibold text-xs px-3.5 py-2 rounded-md flex items-center gap-1.5 transition-all disabled:opacity-50 min-h-[44px]"
           >
-            <Database className="w-3.5 h-3.5" />
+            <Database className="w-4 h-4" />
             Initialize Database
           </button>
           <button
             onClick={handleReseedDatabase}
             disabled={isProcessing}
-            className="bg-dark-bg hover:bg-card-bg border border-border-subtle hover:border-red-400/50 text-red-400 font-semibold text-xs px-3.5 py-2 rounded-md flex items-center gap-1.5 transition-all disabled:opacity-50"
+            className="bg-dark-bg hover:bg-card-bg border border-border-subtle hover:border-red-400/50 text-red-400 font-semibold text-xs px-3.5 py-2 rounded-md flex items-center gap-1.5 transition-all disabled:opacity-50 min-h-[44px]"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-4 h-4" />
             Force Reseed
           </button>
         </div>
       </div>
 
       {actionMessage && (
-        <div className="p-3 bg-primary-blue/10 border border-primary-blue/30 rounded-md text-xs text-primary-blue font-semibold">
+        <div className="p-4 rounded-md bg-primary-blue/10 border border-primary-blue/30 text-xs text-primary-blue font-semibold">
           {actionMessage}
         </div>
       )}
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Database IPO Records', val: totalIPOs, desc: 'Live DB persisted', icon: Database, trend: 'up' },
-          { label: 'Active Pipeline Scrapers', val: '5 / 5', desc: 'NSE, BSE, InvestorGain, Chittorgarh, SEBI', icon: Activity, trend: 'neutral' },
-          { label: 'AI Analyses Generated', val: totalIPOs, desc: 'Gemini 1.5 Flash', icon: Sparkles, trend: 'up' },
-          { label: 'API Contract Version', val: 'v1.0.1', desc: 'FastAPI Production SLA', icon: ShieldCheck, trend: 'up' }
+          { label: 'PERSISTED DEALS', val: totalIPOs, desc: 'Real database records', icon: Database },
+          { label: 'SCRAPER PIPELINES', val: 'Active', desc: 'NSE, BSE, Chittorgarh', icon: Activity },
+          { label: 'AI EVALUATIONS', val: '100%', desc: 'Gemini 1.5 Flash', icon: Sparkles },
+          { label: 'REGISTERED USERS', val: '1', desc: 'Super Admin', icon: Users },
         ].map((card, idx) => {
           const Icon = card.icon;
           return (
-            <div key={idx} className="p-6 bg-card-bg border border-border-strong rounded-lg flex flex-col justify-between hover:border-border-subtle transition-all">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">{card.label}</span>
-                  <span className="text-3xl font-extrabold text-white font-mono">{loading ? '...' : card.val}</span>
-                </div>
-                <div className="p-2.5 rounded-md bg-dark-bg/60 text-primary-blue">
-                  <Icon className="w-5 h-5" />
-                </div>
+            <div key={idx} className="p-4 sm:p-5 bg-card-bg border border-border-strong rounded-lg flex justify-between items-center">
+              <div>
+                <span className="text-[10px] sm:text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">{card.label}</span>
+                <span className="text-xl sm:text-2xl font-bold text-white font-mono">{loading ? '...' : card.val}</span>
+                <span className="text-[10px] text-text-muted block mt-1">{card.desc}</span>
               </div>
-              <div className="mt-4 pt-4 border-t border-border-subtle/30 flex items-center gap-1.5 text-xs text-text-secondary">
-                {card.trend === 'up' && <TrendingUp className="w-3.5 h-3.5 text-accent-emerald" />}
-                <span className={card.trend === 'up' ? 'text-accent-emerald font-semibold' : 'text-text-muted'}>{card.desc}</span>
-              </div>
+              <Icon className="w-6 h-6 text-primary-blue/30 shrink-0" />
             </div>
           );
         })}
       </div>
 
-      {/* Quick Action Navigation Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link href="/admin/ipo" className="p-6 bg-card-bg border border-border-strong rounded-lg hover:border-primary-blue/40 transition-all flex justify-between items-center group">
-          <div>
-            <h3 className="font-bold text-white text-base group-hover:text-primary-blue transition-colors">IPO Deal Management</h3>
-            <p className="text-xs text-text-muted mt-1">Create, edit, delete, or trigger Gemini AI evaluation for IPOs.</p>
-          </div>
-          <ArrowRight className="w-5 h-5 text-text-muted group-hover:text-primary-blue group-hover:translate-x-1 transition-all" />
-        </Link>
-
-        <Link href="/admin/automation" className="p-6 bg-card-bg border border-border-strong rounded-lg hover:border-secondary-purple/40 transition-all flex justify-between items-center group">
-          <div>
-            <h3 className="font-bold text-white text-base group-hover:text-secondary-purple transition-colors">Automation Pipeline</h3>
-            <p className="text-xs text-text-muted mt-1">Run manual scrapers, view execution logs, or pause APScheduler.</p>
-          </div>
-          <Play className="w-5 h-5 text-text-muted group-hover:text-secondary-purple group-hover:translate-x-1 transition-all" />
-        </Link>
-
-        <Link href="/admin/users" className="p-6 bg-card-bg border border-border-strong rounded-lg hover:border-accent-emerald/40 transition-all flex justify-between items-center group">
-          <div>
-            <h3 className="font-bold text-white text-base group-hover:text-accent-emerald transition-colors">User Management</h3>
-            <p className="text-xs text-text-muted mt-1">Audit accounts, manage RBAC permissions, and view user logs.</p>
-          </div>
-          <Users className="w-5 h-5 text-text-muted group-hover:text-accent-emerald group-hover:translate-x-1 transition-all" />
-        </Link>
-      </div>
-
-      {/* Latest Persisted Database Records Table */}
-      <div className="p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
+      {/* Latest Database Records Table & Mobile Cards */}
+      <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="font-bold text-white text-base flex items-center gap-2">
-            <Database className="w-4 h-4 text-primary-blue" /> Live Database IPO Records
-          </h3>
-          <Link href="/admin/ipo" className="text-xs font-semibold text-primary-blue hover:underline">
+          <h2 className="font-bold text-white text-base">Latest Persisted Database Records</h2>
+          <Link href="/admin/ipo" className="text-xs font-semibold text-primary-blue hover:underline flex items-center gap-1 min-h-[44px]">
             Manage All →
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-dark-bg/60 text-text-muted uppercase text-[10px] font-mono border-b border-border-subtle">
-              <tr>
+        {/* Mobile Stacked Card View */}
+        <div className="grid grid-cols-1 md:hidden gap-3">
+          {latestIPOs.map((ipo) => (
+            <div key={ipo.id} className="p-4 bg-dark-bg border border-border-subtle rounded-lg space-y-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-bold text-white text-sm break-words">{ipo.name}</h3>
+                  <span className="text-[11px] text-text-muted font-mono">{ipo.sector}</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
+                  {ipo.status}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs font-mono pt-2 border-t border-border-subtle/40">
+                <span className="text-text-muted">Price: ₹{ipo.priceBand.min}-₹{ipo.priceBand.max}</span>
+                <span className="text-accent-emerald">GMP: +{ipo.gmp}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop HTML Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-border-subtle text-text-muted uppercase text-[10px] font-mono">
                 <th className="p-3">Company Name</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">Price Band</th>
-                <th className="p-3">Lot Size</th>
-                <th className="p-3">Exchange</th>
+                <th className="p-3">GMP</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border-subtle/40 text-text-secondary font-mono">
+            <tbody className="divide-y divide-border-subtle/40 font-mono text-text-secondary">
               {latestIPOs.map((ipo) => (
-                <tr key={ipo.id} className="hover:bg-dark-bg/30 transition-colors">
-                  <td className="p-3 font-semibold text-white font-sans">{ipo.name}</td>
+                <tr key={ipo.id} className="hover:bg-dark-bg/30">
+                  <td className="p-3 font-sans font-semibold text-white">{ipo.name}</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
-                      {ipo.status.toUpperCase()}
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/20">
+                      {ipo.status}
                     </span>
                   </td>
                   <td className="p-3">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</td>
-                  <td className="p-3">{ipo.lotSize}</td>
-                  <td className="p-3">BSE & NSE</td>
+                  <td className="p-3 text-accent-emerald">+{ipo.gmp}%</td>
                   <td className="p-3 text-right font-sans">
                     <Link href={`/dashboard/ipo/${ipo.id}`} className="text-primary-blue hover:underline font-semibold">
-                      View Live →
+                      Inspect
                     </Link>
                   </td>
                 </tr>

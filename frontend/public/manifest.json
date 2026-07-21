@@ -1,0 +1,17 @@
+{
+  "name": "IPO Genius AI",
+  "short_name": "IPO Genius",
+  "description": "AI-Powered Indian IPO Intelligence, Live GMP Tracker & Financial Prospectus Analysis Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

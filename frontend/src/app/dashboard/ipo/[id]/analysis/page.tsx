@@ -10,7 +10,8 @@ import {
   Activity,
   Award,
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from 'lucide-react';
 import { ipoService } from '../../../../../services/ipo.service';
 import { IPO } from '../../../../../types';
@@ -72,15 +73,45 @@ export default function AIAnalysisPage({ params }: { params: any }) {
   const recommendation = analysis?.recommendation ?? ipo?.aiRecommendation ?? 'SUBSCRIBE';
   const summary = analysis?.summary ?? 'Swiggy exhibits strong market leadership in quick commerce with accelerating revenue expansion.';
 
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ipogeniusai.vercel.app';
+
+  const jsonLdArticle = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: `${ipo?.name || 'IPO'} AI Evaluation, Rating & SWOT Matrix`,
+    description: summary,
+    datePublished: '2026-07-20T00:00:00Z',
+    dateModified: new Date().toISOString(),
+    author: {
+      '@type': 'Organization',
+      name: 'IPO Genius AI Research Team',
+      url: siteUrl
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'IPO Genius AI',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/icon.png`
+      }
+    },
+    mainEntityOfPage: `${siteUrl}/dashboard/ipo/${id}/analysis`
+  };
+
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-full overflow-x-hidden">
+    <article className="space-y-6 sm:space-y-8 max-w-full overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdArticle) }}
+      />
+
       {/* Back button */}
       <Link href={`/dashboard/ipo/${id}`} className="text-xs font-semibold text-text-muted hover:text-white flex items-center gap-1.5 w-fit min-h-[44px]">
         <ArrowLeft className="w-4 h-4" /> Back to IPO Details
       </Link>
 
       {/* Hero AI Rating Card */}
-      <div className="p-4 sm:p-6 bg-gradient-to-br from-card-bg to-dark-bg border border-secondary-purple/30 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl relative overflow-hidden">
+      <header className="p-4 sm:p-6 bg-gradient-to-br from-card-bg to-dark-bg border border-secondary-purple/30 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl relative overflow-hidden">
         <div className="space-y-2 max-w-xl">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-secondary-purple animate-pulse" />
@@ -88,6 +119,11 @@ export default function AIAnalysisPage({ params }: { params: any }) {
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-white break-words">{ipo?.name || 'IPO'} AI Evaluation</h1>
           <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">{summary}</p>
+
+          <div className="flex items-center gap-2 text-[10px] text-text-muted font-mono pt-2">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Updated: {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</span>
+          </div>
         </div>
 
         <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto border-t border-border-subtle/30 md:border-none pt-4 md:pt-0">
@@ -114,10 +150,10 @@ export default function AIAnalysisPage({ params }: { params: any }) {
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Metric Breakdown Sub-Scores Grid */}
-      <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'FINANCIAL HEALTH', score: analysis?.financial_score ?? 86, desc: 'Revenue & Debt ratios' },
           { label: 'MANAGEMENT GRADE', score: analysis?.management_score ?? 83, desc: 'Promoter governance' },
@@ -133,10 +169,10 @@ export default function AIAnalysisPage({ params }: { params: any }) {
             <Award className="w-6 h-6 text-primary-blue/30 shrink-0" />
           </div>
         ))}
-      </div>
+      </section>
 
       {/* SWOT Matrix Grid */}
-      <div className="space-y-4">
+      <section className="space-y-4">
         <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
           <Activity className="w-4 h-4 text-primary-blue" /> AI SWOT Matrix
         </h2>
@@ -164,13 +200,13 @@ export default function AIAnalysisPage({ params }: { params: any }) {
             </ul>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Official Prospectus Regulatory Links */}
-      <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
-        <h3 className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+      <section className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
+        <h2 className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
           <FileText className="w-4 h-4 text-primary-blue" /> Regulatory Prospectus Documents (SEBI Filings)
-        </h3>
+        </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs">
           <a
@@ -201,7 +237,7 @@ export default function AIAnalysisPage({ params }: { params: any }) {
             <FileText className="w-4 h-4" />
           </a>
         </div>
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }

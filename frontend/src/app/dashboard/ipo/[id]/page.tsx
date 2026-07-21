@@ -8,12 +8,14 @@ import {
   Heart, 
   AlertTriangle, 
   CheckCircle,
-  HelpCircle,
   BarChart2,
   Calendar,
   Building,
   DollarSign,
-  FileText
+  FileText,
+  ShieldAlert,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import { ipoService } from '../../../../services/ipo.service';
 import { IPO } from '../../../../types';
@@ -22,7 +24,7 @@ export default function IPODetails({ params }: { params: any }) {
   const unwrappedParams = use(params) as any;
   const id = unwrappedParams.id;
   const [ipo, setIpo] = useState<IPO | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'swot'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'financials' | 'swot' | 'geo'>('overview');
   const [inWatchlist, setInWatchlist] = useState(false);
 
   useEffect(() => {
@@ -40,15 +42,69 @@ export default function IPODetails({ params }: { params: any }) {
     );
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ipogeniusai.vercel.app';
+
+  const jsonLdFinancialProduct = {
+    '@context': 'https://schema.org',
+    '@type': 'FinancialProduct',
+    name: `${ipo.name} IPO`,
+    description: ipo.about || `Detailed analysis of ${ipo.name} IPO with price band ₹${ipo.priceBand.min}-₹${ipo.priceBand.max} and live GMP.`,
+    category: 'Initial Public Offering',
+    provider: {
+      '@type': 'Organization',
+      name: ipo.name,
+    },
+    offers: {
+      '@type': 'Offer',
+      price: ipo.priceBand.max,
+      priceCurrency: 'INR',
+      availability: 'https://schema.org/InStock',
+    }
+  };
+
+  const jsonLdBreadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: `${siteUrl}/`
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'IPO Listings',
+        item: `${siteUrl}/dashboard/ipo`
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: ipo.name,
+        item: `${siteUrl}/dashboard/ipo/${ipo.id}`
+      }
+    ]
+  };
+
   return (
-    <div className="space-y-6 sm:space-y-8 max-w-full overflow-x-hidden">
+    <article className="space-y-6 sm:space-y-8 max-w-full overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFinancialProduct) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}
+      />
+
       {/* Back button */}
       <Link href="/dashboard/ipo" className="text-xs font-semibold text-text-muted hover:text-white flex items-center gap-1.5 w-fit min-h-[44px]">
         <ArrowLeft className="w-4 h-4" /> Back to listings
       </Link>
 
       {/* Page Header Card */}
-      <div className="bg-card-bg border border-border-strong p-4 sm:p-6 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
+      <header className="bg-card-bg border border-border-strong p-4 sm:p-6 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-primary-blue/10 to-secondary-purple/10 flex items-center justify-center font-bold text-primary-blue text-xl sm:text-2xl font-mono shrink-0">
             {ipo.ticker.substring(0, 2)}
@@ -100,10 +156,10 @@ export default function IPODetails({ params }: { params: any }) {
             </Link>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* KPI Cards (Price Band, GMP, Issue Size, Listing Date) */}
-      <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 sm:p-5 bg-card-bg border border-border-strong rounded-lg">
           <span className="text-[10px] sm:text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">PRICE BAND</span>
           <span className="text-xl sm:text-2xl font-bold text-white font-mono block">₹{ipo.priceBand.min} - ₹{ipo.priceBand.max}</span>
@@ -123,14 +179,15 @@ export default function IPODetails({ params }: { params: any }) {
           <span className="text-[10px] sm:text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">LISTING DATE</span>
           <span className="text-xl sm:text-2xl font-bold text-white font-mono block">{ipo.listingDate || 'TBA'}</span>
         </div>
-      </div>
+      </section>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-border-strong gap-2 overflow-x-auto pb-1">
+      <nav className="flex border-b border-border-strong gap-2 overflow-x-auto pb-1">
         {[
           { key: 'overview', label: 'Company Overview' },
           { key: 'financials', label: 'Financial Summary' },
           { key: 'swot', label: 'SWOT Analysis' },
+          { key: 'geo', label: 'GEO & Investor Verdict' },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -144,12 +201,12 @@ export default function IPODetails({ params }: { params: any }) {
             {tab.label}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* Tab Panels */}
       {activeTab === 'overview' && (
-        <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
-          <h3 className="font-bold text-white text-base">About {ipo.name}</h3>
+        <section className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
+          <h2 className="font-bold text-white text-base">About {ipo.name}</h2>
           <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
             {ipo.about}
           </p>
@@ -157,12 +214,12 @@ export default function IPODetails({ params }: { params: any }) {
             <span>REGISTRAR: Link Intime India Pvt Ltd</span>
             <span>LEAD MANAGER: Kotak Mahindra Capital</span>
           </div>
-        </div>
+        </section>
       )}
 
       {activeTab === 'financials' && (
-        <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
-          <h3 className="font-bold text-white text-base">Financial Key Metrics</h3>
+        <section className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-4">
+          <h2 className="font-bold text-white text-base">Financial Key Metrics</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
             <div className="p-4 bg-dark-bg rounded border border-border-subtle">
               <span className="text-text-muted block text-[10px]">FY24 REVENUE</span>
@@ -177,15 +234,15 @@ export default function IPODetails({ params }: { params: any }) {
               <span className="text-lg font-bold text-white">13.1%</span>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
       {activeTab === 'swot' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-2">
-            <h4 className="font-bold text-accent-emerald text-sm flex items-center gap-1.5">
+            <h3 className="font-bold text-accent-emerald text-sm flex items-center gap-1.5">
               <CheckCircle className="w-4 h-4" /> Key Strengths
-            </h4>
+            </h3>
             <ul className="text-xs text-text-secondary space-y-1.5 list-disc pl-4">
               <li>Market leader in urban fulfillment logistics</li>
               <li>Strong private label margin monetization</li>
@@ -193,16 +250,38 @@ export default function IPODetails({ params }: { params: any }) {
           </div>
 
           <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-2">
-            <h4 className="font-bold text-red-400 text-sm flex items-center gap-1.5">
+            <h3 className="font-bold text-red-400 text-sm flex items-center gap-1.5">
               <AlertTriangle className="w-4 h-4" /> Risk Factors
-            </h4>
+            </h3>
             <ul className="text-xs text-text-secondary space-y-1.5 list-disc pl-4">
               <li>Fuel inflation impact on delivery costs</li>
               <li>Gig worker regulatory changes</li>
             </ul>
           </div>
-        </div>
+        </section>
       )}
-    </div>
+
+      {activeTab === 'geo' && (
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-3">
+            <h3 className="font-bold text-accent-emerald text-sm flex items-center gap-1.5">
+              <UserCheck className="w-4 h-4" /> Recommended For
+            </h3>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Investors looking for high-growth tech platform exposure with long-term compound potential and strong tier-1 market leadership.
+            </p>
+          </div>
+
+          <div className="p-4 sm:p-6 bg-card-bg border border-border-strong rounded-lg space-y-3">
+            <h3 className="font-bold text-yellow-500 text-sm flex items-center gap-1.5">
+              <UserX className="w-4 h-4" /> Who Should Avoid
+            </h3>
+            <p className="text-xs text-text-secondary leading-relaxed">
+              Conservative value investors looking for dividend yields or short-term listing gain flippers sensitive to volatile GMP fluctuations.
+            </p>
+          </div>
+        </section>
+      )}
+    </article>
   );
 }

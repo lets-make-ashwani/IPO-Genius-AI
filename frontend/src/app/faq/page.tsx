@@ -23,6 +23,19 @@ export default function FAQ() {
     { category: 'Account', q: 'Is my personal data secure?', a: 'Yes. We utilize industry-standard TLS encryption protocols and secure databases to store passwords and profile credentials. We never sell your personal data.' }
   ];
 
+  const jsonLdFaq = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map(item => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a
+      }
+    }))
+  };
+
   const filteredFaqs = faqItems.filter((item) => {
     const matchesSearch = item.q.toLowerCase().includes(searchQuery.toLowerCase()) || item.a.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
@@ -31,41 +44,42 @@ export default function FAQ() {
 
   return (
     <div className="min-h-screen bg-dark-bg text-text-primary flex flex-col pt-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
+      />
       <Navbar />
 
-      <section className="py-20 px-6 text-center max-w-4xl mx-auto w-full">
+      <main className="flex-1 py-16 px-4 sm:px-6 text-center max-w-4xl mx-auto w-full">
         <span className="text-xs font-bold text-primary-blue bg-primary-blue/10 px-3.5 py-1.5 rounded-full uppercase tracking-wider mb-4 inline-block">
           Support Center
         </span>
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-8">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-8">
           Frequently Asked Questions
         </h1>
 
         {/* Search */}
-        <div className="relative max-w-lg mx-auto mb-12">
+        <div className="relative max-w-lg mx-auto mb-10">
           <Search className="absolute left-3.5 top-3 w-5 h-5 text-text-muted" />
           <input
             type="text"
             placeholder="Search FAQs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-12 pl-12 pr-4 rounded-md bg-card-bg/60 border border-border-subtle focus:border-primary-blue text-sm focus:outline-none focus:ring-1 focus:ring-primary-blue transition-all"
+            className="w-full h-11 pl-11 pr-4 rounded-lg bg-card-bg border border-border-subtle focus:border-primary-blue text-sm focus:outline-none text-white placeholder:text-text-muted transition-all"
           />
         </div>
 
-        {/* Categories */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
+        {/* Filter Categories */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => {
-                setActiveCategory(cat as any);
-                setOpenFaq(null);
-              }}
-              className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${
+              onClick={() => setActiveCategory(cat as any)}
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all min-h-[44px] ${
                 activeCategory === cat
-                  ? 'bg-primary-blue border-primary-blue text-white'
-                  : 'bg-card-bg border-border-strong text-text-secondary hover:text-white'
+                  ? 'bg-primary-blue text-white shadow-lg shadow-primary-blue/20'
+                  : 'bg-card-bg text-text-secondary hover:text-white border border-border-subtle'
               }`}
             >
               {cat}
@@ -73,32 +87,38 @@ export default function FAQ() {
           ))}
         </div>
 
-        {/* Accordions */}
-        <div className="space-y-4 max-w-3xl mx-auto text-left mb-20">
+        {/* FAQ List */}
+        <div className="space-y-4 text-left">
           {filteredFaqs.length > 0 ? (
-            filteredFaqs.map((faq, idx) => (
-              <div key={idx} className="border border-border-strong rounded-lg overflow-hidden bg-card-bg/30">
-                <button
-                  onClick={() => setOpenFaq(prev => prev === idx ? null : idx)}
-                  className="w-full flex items-center justify-between p-5 text-left font-semibold text-white focus:outline-none"
+            filteredFaqs.map((item, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="bg-card-bg border border-border-strong rounded-lg overflow-hidden transition-colors"
                 >
-                  <span className="pr-4">{faq.q}</span>
-                  <ChevronDown className={`w-4 h-4 text-text-muted shrink-0 transition-transform ${openFaq === idx ? 'rotate-180' : ''}`} />
-                </button>
-                {openFaq === idx && (
-                  <div className="px-5 pb-5 text-sm text-text-secondary leading-relaxed border-t border-border-strong/50 pt-3">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            ))
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full p-5 text-left flex justify-between items-center gap-4 text-white font-semibold text-sm sm:text-base hover:text-primary-blue transition-colors min-h-[44px]"
+                  >
+                    <span>{item.q}</span>
+                    <ChevronDown className={`w-5 h-5 shrink-0 transition-transform ${isOpen ? 'rotate-180 text-primary-blue' : 'text-text-muted'}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 pt-0 text-xs sm:text-sm text-text-secondary border-t border-border-subtle/40 leading-relaxed">
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           ) : (
-            <div className="text-center py-16 text-text-muted">
-              No results found matching your search.
+            <div className="p-8 text-center text-text-muted bg-card-bg border border-border-strong rounded-lg">
+              No questions found matching your search term.
             </div>
           )}
         </div>
-      </section>
+      </main>
 
       <Footer />
     </div>

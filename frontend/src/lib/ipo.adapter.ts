@@ -40,6 +40,13 @@ export function toFrontendIPO(item: BackendIPOResponse): IPO {
     aiScore: 78,
     aiRecommendation: 'Buy',
     gmp: item.gmp || 0,
+    totalSubscription: item.total_subscription || 0,
+    computedStatus: item.computed_status || item.status,
+    listingToday: item.listing_today || false,
+    openingToday: item.opening_today || false,
+    openingTomorrow: item.opening_tomorrow || false,
+    closingToday: item.closing_today || false,
+    closingTomorrow: item.closing_tomorrow || false,
     overview: item.details?.company_overview || 'Comprehensive company overview available in official DRHP/RHP filings.',
     businessModel: item.details?.business_model || 'Business model details provided in regulatory prospectuses.',
     financialSummary: {

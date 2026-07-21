@@ -113,6 +113,7 @@ class IPORepository:
             status=ipo_data.status,
             gmp=ipo_data.gmp,
             gmp_last_updated=ipo_data.gmp_last_updated,
+            total_subscription=getattr(ipo_data, "total_subscription", 0.0) or 0.0,
             drhp_url=ipo_data.drhp_url,
             rhp_url=ipo_data.rhp_url,
             prospectus_url=ipo_data.prospectus_url,
@@ -183,6 +184,8 @@ class IPORepository:
             ipo.gmp = ipo_data.gmp
         if ipo_data.gmp_last_updated is not None:
             ipo.gmp_last_updated = ipo_data.gmp_last_updated
+        if getattr(ipo_data, "total_subscription", None) is not None:
+            ipo.total_subscription = ipo_data.total_subscription
         if ipo_data.drhp_url is not None:
             ipo.drhp_url = ipo_data.drhp_url
         if ipo_data.rhp_url is not None:

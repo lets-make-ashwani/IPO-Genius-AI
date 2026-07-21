@@ -34,9 +34,18 @@ class IPOResponse(BaseModel):
     # Placeholders for future GMP / Documents
     gmp: int | None = None
     gmp_last_updated: datetime.datetime | None = None
+    total_subscription: Optional[float] = 0.0
     drhp_url: str | None = None
     rhp_url: str | None = None
     prospectus_url: str | None = None
+
+    # Dynamic classification fields computed relative to current date
+    computed_status: Optional[str] = None
+    listing_today: Optional[bool] = False
+    opening_today: Optional[bool] = False
+    opening_tomorrow: Optional[bool] = False
+    closing_today: Optional[bool] = False
+    closing_tomorrow: Optional[bool] = False
 
     # Scraper & Sync Fields
     source: str | None = None
@@ -125,6 +134,7 @@ class IPOCreate(BaseModel):
     status: IPOStatus
     gmp: Optional[int] = None
     gmp_last_updated: Optional[datetime.datetime] = None
+    total_subscription: Optional[float] = 0.0
     drhp_url: Optional[str] = None
     rhp_url: Optional[str] = None
     prospectus_url: Optional[str] = None
@@ -150,6 +160,7 @@ class IPOUpdate(BaseModel):
     status: Optional[IPOStatus] = None
     gmp: Optional[int] = None
     gmp_last_updated: Optional[datetime.datetime] = None
+    total_subscription: Optional[float] = None
     drhp_url: Optional[str] = None
     rhp_url: Optional[str] = None
     prospectus_url: Optional[str] = None

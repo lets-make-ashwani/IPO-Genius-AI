@@ -50,6 +50,13 @@ export interface BackendIPOResponse {
   status: 'Upcoming' | 'Open' | 'Closed' | 'Listed';
   gmp: number | null;
   gmp_last_updated: string | null;
+  total_subscription?: number;
+  computed_status?: string | null;
+  listing_today?: boolean;
+  opening_today?: boolean;
+  opening_tomorrow?: boolean;
+  closing_today?: boolean;
+  closing_tomorrow?: boolean;
   drhp_url: string | null;
   rhp_url: string | null;
   prospectus_url: string | null;

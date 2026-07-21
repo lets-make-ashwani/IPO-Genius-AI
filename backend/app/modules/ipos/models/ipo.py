@@ -1,7 +1,7 @@
 import enum
 import uuid
 from datetime import datetime, date, timezone
-from sqlalchemy import String, Boolean, DateTime, Date, Integer
+from sqlalchemy import String, Boolean, DateTime, Date, Integer, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
@@ -40,9 +40,10 @@ class IPO(Base):
     listing_date: Mapped[date | None] = mapped_column(Date, index=True, nullable=True)
     status: Mapped[IPOStatus] = mapped_column(String(50), index=True, nullable=False)
     
-    # Placeholders for future GMP / Documents
+    # Placeholders for GMP / Subscription / Documents
     gmp: Mapped[int | None] = mapped_column(Integer, nullable=True)
     gmp_last_updated: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    total_subscription: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     drhp_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     rhp_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     prospectus_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -62,5 +63,3 @@ class IPO(Base):
     details = relationship("IPODetail", back_populates="ipo", uselist=False, cascade="all, delete-orphan")
     ai_analyses = relationship("AIAnalysis", back_populates="ipo", cascade="all, delete-orphan")
     watchlist_items = relationship("WatchlistItem", back_populates="ipo", cascade="all, delete-orphan")
-
-

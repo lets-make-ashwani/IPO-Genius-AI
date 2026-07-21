@@ -266,6 +266,43 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Browse IPOs by Category Section */}
+      <section className="py-24 px-6 bg-sidebar-bg/10 border-t border-border-subtle/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-white mb-4 font-sans">Browse IPOs by Category</h2>
+            <p className="text-text-secondary max-w-xl mx-auto text-sm">Access targeted groups of Indian IPO listings categorized dynamically in real-time by date, grey market activity, and AI scores.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { title: 'Live IPOs', desc: 'Currently open for bidding and allocation.', path: '/ipos/live', color: 'border-accent-emerald/30 group-hover:border-accent-emerald' },
+              { title: 'Upcoming IPOs', desc: 'Expected soon with SEBI filings filed.', path: '/ipos/upcoming', color: 'border-primary-blue/30 group-hover:border-primary-blue' },
+              { title: 'Recently Listed', desc: 'Debuted on NSE/BSE in the last 2 days.', path: '/ipos/recently-listed', color: 'border-accent-emerald/30 group-hover:border-accent-emerald' },
+              { title: 'Recently Closed', desc: 'Bidding closed in the last 2 days.', path: '/ipos/recently-closed', color: 'border-text-muted/30 group-hover:border-text-muted' },
+              { title: 'Top AI Rated', desc: 'Top investment ideas by Gemini AI.', path: '/ipos/top-rated', color: 'border-secondary-purple/30 group-hover:border-secondary-purple' },
+              { title: 'Highest GMP', desc: 'Deals with the highest grey market premiums.', path: '/ipos/highest-gmp', color: 'border-accent-emerald/30 group-hover:border-accent-emerald' },
+              { title: 'Most Subscribed', desc: 'Highest overall bidding multiples.', path: '/ipos/most-subscribed', color: 'border-primary-blue/30 group-hover:border-primary-blue' },
+              { title: 'Trending IPOs', desc: 'Fastest-growing community interest.', path: '/ipos/trending', color: 'border-secondary-purple/30 group-hover:border-secondary-purple' }
+            ].map((cat, idx) => (
+              <Link 
+                key={idx} 
+                href={cat.path} 
+                className={`p-6 rounded-lg bg-card-bg/60 border ${cat.color} hover:bg-sidebar-bg/40 transition-all flex flex-col justify-between group h-44`}
+              >
+                <div>
+                  <h3 className="text-base font-bold text-white mb-2 group-hover:text-primary-blue transition-colors">{cat.title}</h3>
+                  <p className="text-xs text-text-secondary leading-relaxed">{cat.desc}</p>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-bold text-primary-blue mt-4 opacity-70 group-hover:opacity-100 transition-opacity">
+                  Browse List <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
 
       {/* Pricing Section */}
       <section className="py-24 px-6 bg-sidebar-bg/20 border-t border-b border-border-subtle">

@@ -28,6 +28,13 @@ export interface IPO {
   aiScore: number;
   aiRecommendation: 'Strong Buy' | 'Buy' | 'Hold' | 'Avoid';
   gmp: number; // percentage premium
+  totalSubscription?: number;
+  computedStatus?: string;
+  listingToday?: boolean;
+  openingToday?: boolean;
+  openingTomorrow?: boolean;
+  closingToday?: boolean;
+  closingTomorrow?: boolean;
   overview: string;
   businessModel: string;
   financialSummary: {

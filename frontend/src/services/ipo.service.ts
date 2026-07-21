@@ -139,4 +139,28 @@ export const ipoService = {
       return undefined;
     }
   },
+
+  /**
+   * Fetch IPOs by dynamic categorization endpoint
+   */
+  async getIPOsByCategory(
+    category: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ items: IPO[]; total: number }> {
+    const params = {
+      limit,
+      offset: (page - 1) * limit,
+    };
+    try {
+      const response = await apiClient.get<BackendApiResponse<BackendIPOResponse[]>>(`/ipos/${category}`, { params });
+      const rawItems = response.data || [];
+      const items = rawItems.map(toFrontendIPO);
+      const total = (response as any).pagination?.total || (response as any).meta?.total || items.length;
+      return { items, total };
+    } catch (error) {
+      console.error(`Error fetching IPOs for category ${category}:`, error);
+      return { items: [], total: 0 };
+    }
+  },
 };

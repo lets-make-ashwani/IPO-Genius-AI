@@ -22,6 +22,37 @@ export const userService = {
   },
 
   /**
+   * Update authenticated user profile name
+   */
+  async updateProfile(fullName: string): Promise<User | null> {
+    try {
+      const response = await apiClient.put<BackendApiResponse<BackendUser>>('/users/me', {
+        full_name: fullName
+      });
+      if (!response.data) return null;
+      return toFrontendUser(response.data);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Change user password
+   */
+  async changePassword(oldPassword: string, newPassword: string): Promise<void> {
+    try {
+      await apiClient.put<BackendApiResponse<null>>('/users/me/password', {
+        old_password: oldPassword,
+        new_password: newPassword
+      });
+    } catch (error) {
+      console.error('Failed to change password:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Get transaction history for current user
    */
   async getTransactions(): Promise<Transaction[]> {
